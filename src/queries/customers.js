@@ -94,7 +94,19 @@ async function call({ userID, customerID }) {
   const { account: { _id }, phones } = await userById({ userID }) 
   const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk').exec()
 
-  return await request(`http://185.22.65.50/call.php?cn=${ customer.phones[0].replace('+7', '8') }&un=${ phones[0].replace('+7', '8') }&tr=${ customer.trunk.phone.replace('+7', '8') }&call_id=ms3`)
+  const options = {
+      uri: 'http://185.22.65.50/call.php',
+      qs: {
+          cn: customer.phones[0].replace('+7', '8'),
+          un: phones[0].replace('+7', '8'),
+          tr: customer.trunk.phone.replace('+7', '8'),
+          call_id: 'ms3'
+      },
+      headers: { 'User-Agent': 'Request-Promise' },
+      json: true
+  };
+
+  return await request(options)
 }
 
 

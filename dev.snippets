@@ -1,0 +1,14 @@
+
+restart CI: 
+sudo systemctl start jenkins
+sudo systemctl status jenkins
+
+
+server {
+  listen 80;
+  server_name ci.mindsales-crm.com;
+  access_log /var/log/nginx/ci.log;
+  location / {
+    proxy_pass    http://127.0.0.1:8080/;
+  }
+}
