@@ -54,9 +54,7 @@ router.get('/customers/:customerID/call', (request, response, next) => {
 
     call({ userID, customerID })
         .then(result => {
-            console.log('call result', result, typeof result)
-            const answer = JSON.parse(result)
-            answer.success === true? 
+            result === '{ success: true }'? 
                 response.json({ status: 200 })
                 :
                 response.status(500).json({ status: 500, message: 'Отмена звонка' })
