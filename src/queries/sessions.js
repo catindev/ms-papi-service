@@ -1,14 +1,19 @@
 const { Session, User } = require('../schema')
 const md5 = require('../utils/md5')
 const CustomError = require('../utils/error')
+const formatNumber = require('../utils/formatNumber')
 
 async function SignIn({ login, password }) {
 	const passwordHash = md5(`${ password }wow! much salt!`)
 
-	const user = await User.findOne({ login, password: passwordHash })
-	if (user === null) throw new CustomError('Неверный логин или пароль', 400)
+	const user = await User.findOne({ 
+		phones: formatNumber(login,false), password: passwordHash 
+	})
+
+	if (!user || user === null) throw new CustomError('Неверный номер телефона или пароль', 400)
 
 	const token = md5(`${ new Date().getTime() }@${ passwordHash }@${ Math.random() }@woop!woop`)
+	
 	const newSession = new Session({ user, token })
 	newSession.save()
 

@@ -1,8 +1,8 @@
 const mongoose = require('mongoose')
 const { Schema } = mongoose
 const { ObjectId } = Schema.Types
-const { generate } = require('./utils/namer')
 const formatNumber = require('./utils/formatNumber')
+
 
 const Log = mongoose.model('Log', new Schema({
     type: String,
@@ -11,6 +11,7 @@ const Log = mongoose.model('Log', new Schema({
     what: String,
     details: String,
 }))
+
 
 const Account = mongoose.model('Account', new Schema({
     name: String,
@@ -23,6 +24,7 @@ const Account = mongoose.model('Account', new Schema({
     created: { type: Date, default: Date.now() }
 }))
 
+
 const User = mongoose.model('User', new Schema({
     account: { type: ObjectId, ref: 'Account' },
     created: { type: Date, default: Date.now() },
@@ -33,6 +35,14 @@ const User = mongoose.model('User', new Schema({
     password: String
 }))
 
+
+const Session = mongoose.model('Session', new Schema({
+    user: { type: ObjectId, ref: 'User' },
+    token: String,
+    created: { type: Date, default: Date.now() }
+}))
+
+
 const Trunk = mongoose.model('Trunk', new Schema({
     account: { type: ObjectId, ref: 'Account' },
     phone: String,
@@ -40,17 +50,18 @@ const Trunk = mongoose.model('Trunk', new Schema({
     active: { type: Boolean, default: false },
 }))
 
+
 const customerSchema = new Schema({
     account: { type: ObjectId, ref: 'Account' },
     trunk: { type: ObjectId, ref: 'Trunk' },
     user: { type: ObjectId, ref: 'User' },
     created: { type: Date, default: Date.now() },
     lastUpdate: { type: Date, default: Date.now() },
-    name: String, 
+    name: String,
     details: String,
     phones: [String],
-    notes: [String],
-    funnelStep: String,
+    notes: String,
+    funnelStep: String, // lead || cold, in-progress, ...custom, deal || reject
     nonTargetedReason: String,
     deal: {
         amount: Number,
@@ -60,14 +71,16 @@ const customerSchema = new Schema({
         reason: String,
         comment: String
     }
-})
-customerSchema.pre('save', function( next ) {
-    if ( !this.name ) this.name = generate()
-    this.phones = this.phones.map( phone => formatNumber(phone) )
+}, { strict: false })
+
+customerSchema.pre('save', function(next) {
+    this.phones = this.phones.map(phone => formatNumber(phone))
     this.lastUpdate = new Date()
     next()
 })
+
 const Customer = mongoose.model('Customer', customerSchema)
+
 
 const Call = mongoose.model('Call', new Schema({
     account: { type: ObjectId, ref: 'Account' },
@@ -88,6 +101,7 @@ module.exports = {
     Log,
     Account,
     User,
+    Session,
     Trunk,
     Call,
     Customer
