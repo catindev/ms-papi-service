@@ -30,7 +30,7 @@ async function leads({ userID, skip = 0 }) {
     const result = []
 
     for (let customer of customers) {
-        const call = await Call.findOne({ customer: customer._id }).sort('-_id')
+        const call = await Call.findOne({ customer: customer._id, isCallback: false }).sort('-_id')
         result.push(Object.assign({}, customer.toObject(), { state: call.record ? 'WAIT_PROFILE' : 'WAIT_RECALL' }))
     }
 
