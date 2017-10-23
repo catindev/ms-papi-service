@@ -24,17 +24,16 @@ async function leads({ userID, skip = 0 }) {
         '$or': [{ user: { $exists: false } }, { user: userID }],
     }).skip(skip).limit(50)
 
-    console.log('customers.length', customers.length)
-
     if (customers.length === 0) return customers
 
     const result = []  
+
     for (let customer of customers) {
       const clone = Object.assign({}, customer.toObject())
-      const missed = await Call.find({ customer: customer._id, record: { $exists: false } }).count()
-      const success = await Call.find({ customer: customer._id, record: { $exists: true } }).count()
-      console.log('calls for',success,missed)
-      clone.calls = { missed, success }
+      const lastCall = await Call.findOne({ customer: customer._id }, null, { sort: { date: -1 } })
+      console.log(lastCall.record)
+      const state = lastCall.record? 'WAIT_PROFILE' : 'WAIT_RECALL'
+      clone.state = state
       result.push(clone)
     }      
 
