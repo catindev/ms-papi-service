@@ -2,6 +2,7 @@ const toObjectId = require('mongoose').Types.ObjectId
 const { Account, Customer, Call } = require('../schema')
 const CustomError = require('../utils/error')
 const { userById } = require('./users')
+const request = require('request-promise')
 
 
 async function leads({ userID, skip = 0 }) {
@@ -22,7 +23,7 @@ async function leads({ userID, skip = 0 }) {
             account: _id,
             funnelStep: 'lead',
             '$or': [{ user: { $exists: false } }, { user: userID }],
-        }, null, { skip, limit: 50 }).populate('trunk').exec()
+        }, null, { skip, limit: 50 })
 
     if (customers.length === 0) return customers
 
@@ -91,10 +92,12 @@ async function call({ userID, customerID }) {
   if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
   const { account: { _id }, phones } = await userById({ userID }) 
-  const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk')
+  const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk').exec()
 
+  console.log('call URL:', `http://185.22.65.50/call.php?cn=${ customer.phones[0] }&un=${ phones[0] }&tr=${ customer.trunk.phone }`)
 
+  return await request(`http://185.22.65.50/call.php?cn=${ customer.phones[0] }&un=${ phones[0] }&tr=${ customer.trunk.phone }`)
 }
 
 
-module.exports = { search, leads }
+module.exports = { search, leads, call }

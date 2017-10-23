@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const { SignIn } = require('./queries/sessions')
-const { search, leads } = require('./queries/customers')
+const { search, leads, call } = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
     name: 'ms-papi-service',
@@ -46,6 +46,17 @@ router.get('/customers/funnel', (request, response, next) => {
 
     search({ userID, step, skip })
         .then(items => response.json({ status: 200, items }))
+        .catch(next)
+})
+
+router.get('/customers/:customerID/call', (request, response, next) => {
+    const { userID, params: { customerID } } = request
+
+    call({ userID, customerID })
+        .then(result => {
+            console.log(result)
+            response.json({ status: 200 })
+        })
         .catch(next)
 })
 
