@@ -54,6 +54,7 @@ router.get('/customers/:customerID/call', (request, response, next) => {
 
     call({ userID, customerID })
         .then(result => {
+            console.log('call result', result, JSON.parse(result))
             const answer = JSON.parse(result)
             answer.success === true? 
                 response.json({ status: 200 })
