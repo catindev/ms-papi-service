@@ -15,30 +15,26 @@ async function leads({ userID, skip = 0 }) {
     */
 
     if (typeof userID === 'string') userID = toObjectId(userID)
-    
+
     const { account: { _id } } = await userById({ userID })
 
     const customers = await Customer.find({
-        account: _id,
-        funnelStep: 'lead',
-        '$or': [{ user: { $exists: false } }, { user: userID }],
-    }).skip(skip).limit(50)
+            account: _id,
+            funnelStep: 'lead',
+            '$or': [{ user: { $exists: false } }, { user: userID }],
+        }, null, { skip, limit: 50 }).populate('trunk').exec()
 
     if (customers.length === 0) return customers
 
-    const result = []  
+    const result = []
 
     for (let customer of customers) {
-      const clone = Object.assign({}, customer.toObject())
-      const lastCall = await Call.findOne({ customer: customer._id }, null, { sort: { date: -1 } })
-      console.log(lastCall.record)
-      const state = lastCall.record? 'WAIT_PROFILE' : 'WAIT_RECALL'
-      clone.state = state
-      result.push(clone)
-    }      
+        const { record } = await Call.findOne({ customer: customer._id }, null, { sort: { date: -1 } })
+        result.push(Object.assign({}, customer.toObject(), { state: record ? 'WAIT_PROFILE' : 'WAIT_RECALL' }))
+    }
 
     return result
-  }
+}
 
 
 async function funnel({ userID }) {
@@ -46,23 +42,27 @@ async function funnel({ userID }) {
 
     const { account: { _id, funnelSteps } } = await userById({ userID })
 
-    const query = { 
-      account: _id, user: userID, 
-      funnelStep: { $in: Object.assign(['in-progress'], funnelSteps) } 
+    const query = {
+        account: _id,
+        user: userID,
+        funnelStep: { $in: Object.assign(['in-progress'], funnelSteps) }
     }
 
     const customers = await Customer.find(query)
-    
+
 }
 
 
-async function search({ 
-  userID, step, searchQuery = 'undefined',
-  options, fields = null
+async function search({
+    userID,
+    step,
+    searchQuery = 'undefined',
+    options,
+    fields = null
 }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
-    if (step && searchQuery === 'undefined') searchQuery = ''  
+    if (step && searchQuery === 'undefined') searchQuery = ''
 
     const searchOptions = [
         { name: { '$regex': searchQuery, '$options': 'i' } },
@@ -77,12 +77,23 @@ async function search({
     }
 
     if (step) query.funnelStep = step
-    if (searchQuery) query.$or = Object.assign(query.$or, searchOptions) 
+    if (searchQuery) query.$or = Object.assign(query.$or, searchOptions)
 
     options.skip && (options.skip = parseInt(options.skip))
-    options.limit && (options.limit = parseInt(options.limit))  
+    options.limit && (options.limit = parseInt(options.limit))
 
     return await Customer.find(query, fields, options)
+}
+
+
+async function call({ userID, customerID }) {
+  if (typeof userID === 'string') userID = toObjectId(userID)
+  if (typeof customerID === 'string') customerID = toObjectId(customerID)
+
+  const { account: { _id }, phones } = await userById({ userID }) 
+  const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk')
+
+
 }
 
 
