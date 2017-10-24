@@ -29,7 +29,7 @@ router.post('/sessions', (request, response, next) => {
         message: 'Введите пароль из CMC'
     })
 
-    verifyPassword({ token })
+    verifyPassword({ code })
         .then(token => response.status(200).json({ status: 200, token }))
         .catch(next)
 })
