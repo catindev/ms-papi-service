@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const { SignIn } = require('./queries/sessions')
+const { createPassword, verifyPassword } = require('./queries/sessions')
 const { search, leads, call } = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
@@ -8,14 +8,28 @@ router.get('/', (request, response) => response.json({
 }))
 
 
-router.post('/sessions', (request, response, next) => {
-    const { login, password } = request.body
+router.post('/sessions/password', (request, response, next) => {
+    const { phone } = request.body
 
-    if (!login || !password) return response.status(400).json({
-        message: 'Введите логин и пароль'
+    if (!phone) return response.status(400).json({
+        status: 400,
+        message: 'Введите номер телефона'
     })
 
-    SignIn({ login, password })
+    createPassword({ phone })
+        .then( send => response.status(200).json({ status: 200, send }))
+        .catch(next)
+})
+
+
+router.post('/sessions', (request, response, next) => {
+    const { code } = request.body
+
+    if (!code) return response.status(400).json({
+        message: 'Введите пароль из CMC'
+    })
+
+    verifyPassword({ token })
         .then(token => response.status(200).json({ status: 200, token }))
         .catch(next)
 })

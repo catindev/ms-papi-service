@@ -2,6 +2,7 @@ const { getTokenOwner } = require('../queries/sessions')
 
 module.exports = (request, response, next) => {
     const { path, method } = request
+    if (path === '/sessions/password' && method === 'POST') return next()
     if (path === '/sessions' && method === 'POST') return next()
     if (path === '/' && method === 'GET') return next()
 

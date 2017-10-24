@@ -13,6 +13,13 @@ const Log = mongoose.model('Log', new Schema({
 }))
 
 
+const Password = mongoose.model('Password', new Schema({
+    user: { type: ObjectId, ref: 'User' },
+    code: String,
+    createdAt: { type: Date, expires: 3600000 }
+}))
+
+
 const Account = mongoose.model('Account', new Schema({
     name: String,
     maxWaitingTime: { type: Number, default: 12000 },
@@ -31,8 +38,7 @@ const User = mongoose.model('User', new Schema({
     access: { type: String, enum: ['boss', 'manager'], default: 'manager' },
     name: String,
     phones: [String],
-    email: String,
-    password: String
+    email: String
 }))
 
 
@@ -99,6 +105,7 @@ const Call = mongoose.model('Call', new Schema({
 
 module.exports = {
     Log,
+    Password,
     Account,
     User,
     Session,
