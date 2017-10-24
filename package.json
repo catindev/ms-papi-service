@@ -26,6 +26,7 @@
     "express": "^4.15.4",
     "moment": "^2.18.1",
     "mongoose": "^4.11.12",
+    "mongoose-ttl": "^0.0.3",
     "raven": "^2.1.2",
     "request": "^2.83.0",
     "request-promise": "^4.2.2"

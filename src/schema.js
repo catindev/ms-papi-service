@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const { Schema } = mongoose
 const { ObjectId } = Schema.Types
 const formatNumber = require('./utils/formatNumber')
-
+const ttl = require('mongoose-ttl')
 
 const Log = mongoose.model('Log', new Schema({
     type: String,
@@ -13,11 +13,13 @@ const Log = mongoose.model('Log', new Schema({
 }))
 
 
-const Password = mongoose.model('Password', new Schema({
+const PasswordSchema = new Schema({
     user: { type: ObjectId, ref: 'User' },
-    code: String,
-    createdAt: { type: Date, expires: 3600000 }
-}))
+    code: String
+})
+
+PasswordSchema.plugin(ttl, { ttl: '3m' });
+const Password = mongoose.model('Password', PasswordSchema)
 
 
 const Account = mongoose.model('Account', new Schema({
