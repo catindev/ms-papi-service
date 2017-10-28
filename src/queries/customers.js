@@ -141,6 +141,8 @@ async function call({ userID, customerID }) {
       json: true
   };
 
+  console.log(options)
+
   return await request(options)
 }
 
