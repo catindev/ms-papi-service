@@ -84,7 +84,6 @@ router.get('/customers/:customerID/call', (request, response, next) => {
 
     call({ userID, customerID })
         .then(result => {
-            console.log(result)
             result === '{ success: true }'? 
                 response.json({ status: 200 })
                 :

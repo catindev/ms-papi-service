@@ -1,6 +1,7 @@
 const toObjectId = require('mongoose').Types.ObjectId
 const { Account, Customer, Call, Trunk } = require('../schema')
 const CustomError = require('../utils/error')
+const formatNumber = require('../utils/formatNumber')
 const { userById } = require('./users')
 const request = require('request-promise')
 
@@ -60,6 +61,8 @@ async function createColdLead({ userID, data }) {
     const { account: { _id } } = await userById({ userID })
 
     const trunk = await Trunk.findOne({ account: _id })
+
+    data.phones = formatNumber(data.phones)
 
     const newCustomer = new Customer(Object.assign({}, data, {
       account: _id,
@@ -139,9 +142,7 @@ async function call({ userID, customerID }) {
       },
       headers: { 'User-Agent': 'Request-Promise' },
       json: true
-  };
-
-  console.log(options)
+  }
 
   return await request(options)
 }
