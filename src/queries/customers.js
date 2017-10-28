@@ -61,12 +61,16 @@ async function createColdLead({ userID, data }) {
 
     const trunk = Trunk.findOne({ account: _id })
 
-    const newCustomer = new Customer(Object.assign({}, data, {
+    const payload = Object.assign({}, data, {
       account: _id,
       user: userID, 
       funnelStep: 'cold',
       trunk: trunk._id
-    }))
+    })
+
+    console.log(payload)
+
+    const newCustomer = new Customer(payload)
 
     return await newCustomer.save()
 }
