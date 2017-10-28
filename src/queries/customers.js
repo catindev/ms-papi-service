@@ -39,6 +39,21 @@ async function leads({ userID, skip = 0 }) {
 }
 
 
+async function coldLeads({ userID, skip = 0 }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id } } = await userById({ userID })
+
+    const customers = await Customer.find({
+            account: _id,
+            funnelStep: 'cold',
+            user: userID
+        }, null, { skip, limit: 50 })
+
+    return customers
+}
+
+
 async function funnel({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
@@ -111,4 +126,4 @@ async function call({ userID, customerID }) {
 }
 
 
-module.exports = { search, leads, call }
+module.exports = { search, leads, call, coldLeads }
