@@ -54,6 +54,22 @@ async function coldLeads({ userID, skip = 0 }) {
 }
 
 
+async function createColdLead({ userID, data }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id } } = await userById({ userID })
+
+    const newCustomer = new Customer(Object.assign({}, data, {
+      account: _id,
+      user: userID, 
+      funnelStep: 'cold'
+    }))
+
+    return await newCustomer.save()
+}
+
+
+
 async function funnel({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
@@ -126,4 +142,4 @@ async function call({ userID, customerID }) {
 }
 
 
-module.exports = { search, leads, call, coldLeads }
+module.exports = { search, leads, call, coldLeads, createColdLead }

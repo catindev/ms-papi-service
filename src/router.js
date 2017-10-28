@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const { createPassword, verifyPassword } = require('./queries/sessions')
-const { search, leads, call, coldLeads } = require('./queries/customers')
+const { search, leads, call, coldLeads, createColdLead } = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
     name: 'ms-papi-service',
@@ -47,6 +47,14 @@ router.get('/customers/cold.leads', (request, response, next) => {
 
     coldLeads({ userID, skip })
         .then(items => response.json({ status: 200, items }))
+        .catch(next)
+})
+
+router.post('/customers/cold.leads', (request, response, next) => {
+    const { userID, body } = request
+
+    createColdLead({ userID, data: body })
+        .then(lead => response.json({ status: 200, id: lead._id }))
         .catch(next)
 })
 
