@@ -1,5 +1,5 @@
 const toObjectId = require('mongoose').Types.ObjectId
-const { Account, Customer, Call } = require('../schema')
+const { Account, Customer, Call, Trunk } = require('../schema')
 const CustomError = require('../utils/error')
 const { userById } = require('./users')
 const request = require('request-promise')
@@ -59,10 +59,13 @@ async function createColdLead({ userID, data }) {
 
     const { account: { _id } } = await userById({ userID })
 
+    const trunk = Trunk.findOne({ account: _id })
+
     const newCustomer = new Customer(Object.assign({}, data, {
       account: _id,
       user: userID, 
-      funnelStep: 'cold'
+      funnelStep: 'cold',
+      trunk: trunk._id
     }))
 
     return await newCustomer.save()
