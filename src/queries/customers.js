@@ -95,7 +95,7 @@ async function cutomerById({ userID, customerID }) {
         if (calls.length > 0) {
           const result = Object.assign({}, customer.toObject(), { calls })
           result.calls = result.calls.map( call => {
-            const clone = Object.assign({}, call)
+            const clone = Object.assign({}, call.toObject())
             clone.date = humanDate(clone.date)
             return clone
           })
