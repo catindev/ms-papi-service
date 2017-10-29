@@ -85,6 +85,8 @@ async function cutomerById({ userID, customerID }) {
   const customer = await Customer.findOne({ account: _id, _id: customerID})
     .populate('account').exec()
 
+  if (customer.funnelStep === 'lead') customer.calls = await Call.find({ customer: customerID })  
+
   if (customer) customer.phones = customer.phones.map(formatNumberForHumans)  
 
   return customer  
