@@ -22,10 +22,10 @@ async function leads({ userID, skip = 0 }) {
     const { account: { _id } } = await userById({ userID })
 
     const customers = await Customer.find({
-            account: _id,
-            funnelStep: 'lead',
-            '$or': [{ user: { $exists: false } }, { user: userID }],
-        }, null, { skip, limit: 50 })
+        account: _id,
+        funnelStep: 'lead',
+        '$or': [{ user: { $exists: false } }, { user: userID }],
+    }, null, { skip, limit: 50 })
 
     if (customers.length === 0) return customers
 
@@ -33,7 +33,7 @@ async function leads({ userID, skip = 0 }) {
 
     for (let customer of customers) {
         const call = await Call.findOne({ customer: customer._id }).sort('-_id')
-        const state = !call || !call.record? 'WAIT_RECALL' : 'WAIT_PROFILE'
+        const state = !call || !call.record ? 'WAIT_RECALL' : 'WAIT_PROFILE'
         result.push(Object.assign({}, customer.toObject(), { state }))
     }
 
@@ -47,10 +47,10 @@ async function coldLeads({ userID, skip = 0 }) {
     const { account: { _id } } = await userById({ userID })
 
     const customers = await Customer.find({
-            account: _id,
-            funnelStep: 'cold',
-            user: userID
-        }, null, { skip, limit: 50 })
+        account: _id,
+        funnelStep: 'cold',
+        user: userID
+    }, null, { skip, limit: 50 })
 
     return customers
 }
@@ -66,10 +66,10 @@ async function createColdLead({ userID, data }) {
     data.phones = formatNumber(data.phones)
 
     const newCustomer = new Customer(Object.assign({}, data, {
-      account: _id,
-      user: userID, 
-      funnelStep: 'cold',
-      trunk: trunk._id
+        account: _id,
+        user: userID,
+        funnelStep: 'cold',
+        trunk: trunk._id
     }))
 
     return await newCustomer.save()
@@ -77,22 +77,23 @@ async function createColdLead({ userID, data }) {
 
 
 async function cutomerById({ userID, customerID }) {
-  if (typeof userID === 'string') userID = toObjectId(userID)
-  if (typeof customerID === 'string') customerID = toObjectId(customerID)
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-  const { account: { _id } } = await userById({ userID })  
+    const { account: { _id } } = await userById({ userID })
 
-  const customer = await Customer.findOne({ account: _id, _id: customerID})
-    .populate('account').exec()
+    const customer = await Customer.findOne({ account: _id, _id: customerID })
+        .populate('account').exec()
 
-  if (customer) customer.phones = customer.phones.map(formatNumberForHumans)
+    if (customer) customer.phones = customer.phones.map(formatNumberForHumans)
 
-  if (customer.funnelStep === 'lead') {
-    const calls = await Call.find({ customer: customerID, account: _id })  
-    return Object.assign({}, customer, { calls })
-  }  
+    if (customer.funnelStep === 'lead') {
+        const calls = await Call.find({ customer: customerID, account: _id })
+            .populate('user').exec()
+        return Object.assign({}, customer.toObject(), { calls })
+    }
 
-  return customer  
+    return customer
 }
 
 
@@ -146,25 +147,25 @@ async function search({
 
 
 async function call({ userID, customerID }) {
-  if (typeof userID === 'string') userID = toObjectId(userID)
-  if (typeof customerID === 'string') customerID = toObjectId(customerID)
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-  const { account: { _id }, phones } = await userById({ userID }) 
-  const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk').exec()
+    const { account: { _id }, phones } = await userById({ userID })
+    const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk').exec()
 
-  const options = {
-      uri: 'http://185.22.65.50/call.php',
-      qs: {
-          cn: customer.phones[0].replace('+7', '8'),
-          un: phones[0].replace('+7', '8'),
-          tr: customer.trunk.phone.replace('+7', '8'),
-          call_id: 'ms3'
-      },
-      headers: { 'User-Agent': 'Request-Promise' },
-      json: true
-  }
+    const options = {
+        uri: 'http://185.22.65.50/call.php',
+        qs: {
+            cn: customer.phones[0].replace('+7', '8'),
+            un: phones[0].replace('+7', '8'),
+            tr: customer.trunk.phone.replace('+7', '8'),
+            call_id: 'ms3'
+        },
+        headers: { 'User-Agent': 'Request-Promise' },
+        json: true
+    }
 
-  return await request(options)
+    return await request(options)
 }
 
 
