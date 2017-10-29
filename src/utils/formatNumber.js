@@ -13,13 +13,9 @@ module.exports = function formatNumber( phone, strict = true ) {
 
     let formatted = phone.replace(/ /g,'')
 
+    if ( formatted.length > 4 ) formatted = formatted.replace('+7','')
 
-    if ( formatted[0] === '+' && formatted[1] === '7' ) 
-        formatted = formatted.replace('+7','')
-
-    // warning! это условие пропускает номера в 7 цифр начинающихся с 8  
-    if ( formatted[0] === '8' &&  formatted.length > 6) 
-        formatted = formatted.replace('8','')
+    if ( formatted.length > 6 ) formatted = formatted.replace('8','')    
 
     formatted = formatted.replace(/\D/g,'')
 
@@ -28,7 +24,7 @@ module.exports = function formatNumber( phone, strict = true ) {
     if ( length > 10 ) 
         return strict ? error('в номере лишние цифры (не больше 10)') : false
 
-    if ( length < 10 && length > 6) 
+    if ( length < 9 && length > 6) 
         return strict ? error('номер слишком короткий (больше 6, но меньше 10)') : false        
 
     if ( length === 6 ) formatted = `7212${ formatted }`
