@@ -29,5 +29,5 @@ module.exports = function formatNumber( phone, strict = true ) {
 
     if ( length === 6 ) formatted = `7212${ formatted }`
 
-    return `+7${ formatted }`
+    return length === 3? `+${ formatted }` : `+7${ formatted }`
 }
