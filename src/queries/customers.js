@@ -89,7 +89,7 @@ async function cutomerById({ userID, customerID }) {
     if (customer) customer.phones = customer.phones.map(formatNumberForHumans)
 
     if (customer.funnelStep === 'lead') {
-        const calls = await Call.find({ customer: customerID, account: _id })
+        const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id')
 
         if (calls.length > 0) {
           const result = Object.assign({}, customer.toObject(), { calls })
