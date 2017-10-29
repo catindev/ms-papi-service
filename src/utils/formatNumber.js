@@ -15,7 +15,8 @@ module.exports = function formatNumber( phone, strict = true ) {
 
     if ( formatted.length > 4 ) formatted = formatted.replace('+7','')
 
-    if ( formatted.length > 6 ) formatted = formatted.replace('8','')    
+    if ( formatted.length > 6 && formatted[0] === '8') 
+        formatted = formatted.replace('8','')    
 
     formatted = formatted.replace(/\D/g,'')
 
