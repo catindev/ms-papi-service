@@ -75,6 +75,16 @@ async function createColdLead({ userID, data }) {
 }
 
 
+async function cutomerById({ userID, customerID }) {
+  if (typeof userID === 'string') userID = toObjectId(userID)
+  if (typeof customerID === 'string') customerID = toObjectId(customerID)
+
+  const { account: { _id } } = await userById({ userID })  
+
+  return await Customer.findOne({ account: _id, _id: customerID})
+    .populate('account').exec()
+}
+
 
 async function funnel({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -148,4 +158,4 @@ async function call({ userID, customerID }) {
 }
 
 
-module.exports = { search, leads, call, coldLeads, createColdLead }
+module.exports = { search, leads, call, coldLeads, createColdLead, cutomerById }
