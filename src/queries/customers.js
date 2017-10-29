@@ -2,6 +2,7 @@ const toObjectId = require('mongoose').Types.ObjectId
 const { Account, Customer, Call, Trunk } = require('../schema')
 const CustomError = require('../utils/error')
 const formatNumber = require('../utils/formatNumber')
+const formatNumberForHumans = require('../utils/formatNumberForHumans')
 const { userById } = require('./users')
 const request = require('request-promise')
 
@@ -81,8 +82,12 @@ async function cutomerById({ userID, customerID }) {
 
   const { account: { _id } } = await userById({ userID })  
 
-  return await Customer.findOne({ account: _id, _id: customerID})
+  const customer = await Customer.findOne({ account: _id, _id: customerID})
     .populate('account').exec()
+
+  if (customer) customer.phones = customer.phones.map(formatNumberForHumans)  
+
+  return customer  
 }
 
 
