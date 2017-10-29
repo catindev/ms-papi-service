@@ -84,13 +84,12 @@ async function cutomerById({ userID, customerID }) {
     const { account: { _id } } = await userById({ userID })
 
     const customer = await Customer.findOne({ account: _id, _id: customerID })
-        .populate('account').exec()
+        .populate('account trunk').exec()
 
     if (customer) customer.phones = customer.phones.map(formatNumberForHumans)
 
     if (customer.funnelStep === 'lead') {
         const calls = await Call.find({ customer: customerID, account: _id })
-            .populate('user').exec()
 
         if (calls.length > 0) {
           const result = Object.assign({}, customer.toObject(), { calls })
