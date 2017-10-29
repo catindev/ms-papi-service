@@ -3,6 +3,7 @@ const { Account, Customer, Call, Trunk } = require('../schema')
 const CustomError = require('../utils/error')
 const formatNumber = require('../utils/formatNumber')
 const formatNumberForHumans = require('../utils/formatNumberForHumans')
+const humanDate = require('../utils/humanDate')
 const { userById } = require('./users')
 const request = require('request-promise')
 
@@ -90,7 +91,15 @@ async function cutomerById({ userID, customerID }) {
     if (customer.funnelStep === 'lead') {
         const calls = await Call.find({ customer: customerID, account: _id })
             .populate('user').exec()
-        return Object.assign({}, customer.toObject(), { calls })
+
+        if (calls.length > 0) {
+          const result = Object.assign({}, customer.toObject(), { calls })
+          result.calls = result.calls.map( call => {
+            call.date = humanDate(call.date)
+            return call
+          })
+          return result
+        }
     }
 
     return customer
