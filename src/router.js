@@ -2,7 +2,7 @@ const router = require('express').Router()
 const { createPassword, verifyPassword } = require('./queries/sessions')
 const { 
     search, leads, call, coldLeads, createColdLead, 
-    cutomerById, rejectCustomer, dealCustomer 
+    cutomerById, rejectCustomer, dealCustomer, closedCustomers
 } = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
@@ -104,6 +104,19 @@ router.put('/customers/:customerID/deal', (request, response, next) => {
 
     dealCustomer({ userID, customerID, comment, amount })
         .then(() => response.json({ status: 200 }))
+        .catch(next)
+})
+
+
+router.get('/customers/closed', (request, response, next) => {
+    const { userID, query: { skip } } = request
+
+    closedCustomers({ userID })
+        .then(items => {
+            const reject = items.filter(item => item.funnelStep === 'reject')
+            const deal = items.filter(item => item.funnelStep === 'deal')
+            response.json({ status: 200, reject, deal })
+        })
         .catch(next)
 })
 

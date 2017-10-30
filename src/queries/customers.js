@@ -159,6 +159,17 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
 }
 
 
+async function closedCustomers({ userID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    const { account: { _id } } = await userById({ userID })        
+
+    return await Customers.find({ 
+        account: _id, 
+        $or:[ { funnelStep: 'reject' }, { funnelStep: 'deal' } ] 
+    }).lean().exec()
+
+}
+
 async function funnel({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
@@ -232,5 +243,5 @@ async function call({ userID, customerID }) {
 
 
 module.exports = { 
-  search, leads, call, coldLeads, createColdLead, cutomerById, rejectCustomer, dealCustomer 
+  search, leads, call, coldLeads, createColdLead, cutomerById, rejectCustomer, dealCustomer, closedCustomers 
 }
