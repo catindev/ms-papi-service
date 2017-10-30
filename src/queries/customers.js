@@ -111,7 +111,7 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
     
     const { account: { _id } } = await userById({ userID }) 
 
-    return await Customer.update(
+    return Customer.update(
       { _id: userID, account: _id }, 
       { 
         funnelStep: 'reject', 
