@@ -94,8 +94,8 @@ async function customerById({ userID, customerID, params = false }) {
 
     if (!customer) throw new CustomError('Клиент не найден', 404)   
 
-    console.log(customer.user.toString(), userID.toString(), customer.user.toString() !== userID.toString())    
-    if (customer.user && customer.user.toString() !== userID.toString()) 
+    console.log('equals',customer.user.equals(userID))    
+    if (customer.user && !customer.user.equals(userID)) 
         throw new CustomError('Чужой клиент', 400)
     
     if (!customer.user) {
