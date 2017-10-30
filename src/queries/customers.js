@@ -219,13 +219,14 @@ async function funnel({ userID }) {
     const { account: { _id, funnelSteps } } = await userById({ userID })
     funnelSteps.unshift('in-progress')
     const query = { account: _id, user: userID, funnelStep: { $in: funnelSteps } }
-    const customers = await Customer.find(query)
+    const customers = await Customer.find(query)    
 
     return funnelSteps.reduce((result, step) => {
       result.push({
         name: step === 'in-progress'? 'В работе' : step,
         customers: customers.filter(customer => customer.funnelStep === 'step')
       })
+      return result
     }, []);    
 
     const reject = customers.filter(customer => customer.funnelStep === 'reject')
