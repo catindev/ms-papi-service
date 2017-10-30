@@ -86,7 +86,8 @@ async function customerById({ userID, customerID, params = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id } } = await userById({ userID })
+    const user = await userById({ userID })
+    const { account: { _id } } = user
 
     let customer = await Customer.findOne({ account: _id, _id: customerID })
         .populate('account trunk user').lean().exec()
@@ -95,7 +96,11 @@ async function customerById({ userID, customerID, params = false }) {
 
     if (customer.user && customer.user.toString() !== userID.toString()) 
         throw new CustomError('Клиент был назначен на другого менеджера', 400)
-    if (!customer.user) await Customer.update({ _id: customerID }, { user: userID })
+    
+    if (!customer.user) {
+        await Customer.update({ _id: customerID }, { user: userID })
+        customer.user = user
+    }
 
     customer.phones = customer.phones.map(formatNumberForHumans)
 
