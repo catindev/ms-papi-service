@@ -68,7 +68,7 @@ router.post('/sessions', (request, response, next) => {
         .catch(next)
 })
 
-router.get('/customers/leads', cache(10), (request, response, next) => {
+router.get('/customers/leads',  (request, response, next) => {
     const { userID, query: { skip } } = request
 
     leads({ userID, step: 'lead', skip })
@@ -76,7 +76,7 @@ router.get('/customers/leads', cache(10), (request, response, next) => {
         .catch(next)
 })
 
-router.get('/customers/cold.leads', cache(10), (request, response, next) => {
+router.get('/customers/cold.leads',  (request, response, next) => {
     const { userID, query: { skip } } = request
 
     coldLeads({ userID, skip })
@@ -103,7 +103,7 @@ router.get('/customers', (request, response, next) => {
 })
 
 
-router.put('/customers/:customerID/reject', cache(10), (request, response, next) => {
+router.put('/customers/:customerID/reject',  (request, response, next) => {
     const { userID, params: { customerID }, body: { comment, reason } } = request
 
     if (!reason) return response.status(400).json({
@@ -117,7 +117,7 @@ router.put('/customers/:customerID/reject', cache(10), (request, response, next)
 })
 
 
-router.put('/customers/:customerID/deal', cache(10), (request, response, next) => {
+router.put('/customers/:customerID/deal',  (request, response, next) => {
     const { userID, params: { customerID }, body: { comment, amount } } = request
 
     if (!amount) return response.status(400).json({
@@ -131,7 +131,7 @@ router.put('/customers/:customerID/deal', cache(10), (request, response, next) =
 })
 
 
-router.get('/customers/closed', cache(10), (request, response, next) => {
+router.get('/customers/closed',  (request, response, next) => {
     const { userID, query: { skip } } = request
 
     closedCustomers({ userID })
@@ -140,7 +140,7 @@ router.get('/customers/closed', cache(10), (request, response, next) => {
 })
 
 
-router.get('/customers/funnel', cache(10), (request, response, next) => {
+router.get('/customers/funnel', (request, response, next) => {
     const { userID, query: { step = 'lead', skip = 0 } } = request
 
     funnel({ userID, step, skip })
@@ -184,7 +184,7 @@ router.get('/customers/:customerID/cold.call', (request, response, next) => {
 })
 
 
-router.get('/customers/:customerID', cache(10), (request, response, next) => {
+router.get('/customers/:customerID',  (request, response, next) => {
     const { userID, params: { customerID }, query: { params } } = request
 
     customerById({ userID, customerID, params })
