@@ -5,6 +5,26 @@ const {
     customerById, rejectCustomer, dealCustomer, closedCustomers
 } = require('./queries/customers')
 
+const mcache = require('memory-cache')
+const cache = (duration) => {
+  return (request, response, next) => {
+    let key = '__express__' + request.originalUrl || request.url
+    let cachedBody = mcache.get(key)
+    if (cachedBody) {
+      response.send(cachedBody)
+      return
+    } else {
+      response.sendResponse = response.send
+      response.send = (body) => {
+        mcache.put(key, body, duration * 1000)
+        response.sendResponse(body)
+      }
+      next()
+    }
+  }
+}
+
+
 router.get('/', (request, response) => response.json({
     name: 'ms-papi-service',
     version: 1
@@ -37,7 +57,7 @@ router.post('/sessions', (request, response, next) => {
         .catch(next)
 })
 
-router.get('/customers/leads', (request, response, next) => {
+router.get('/customers/leads', cache(10), (request, response, next) => {
     const { userID, query: { skip } } = request
 
     leads({ userID, step:'lead', skip })
@@ -45,7 +65,7 @@ router.get('/customers/leads', (request, response, next) => {
         .catch(next)
 })
 
-router.get('/customers/cold.leads', (request, response, next) => {
+router.get('/customers/cold.leads', cache(10), (request, response, next) => {
     const { userID, query: { skip } } = request
 
     coldLeads({ userID, skip })
