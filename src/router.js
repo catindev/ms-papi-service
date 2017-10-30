@@ -148,7 +148,7 @@ router.get('/customers/funnel', cache(10), (request, response, next) => {
         .catch(next)
 })
 
-router.get('/customers/:customerID/step.down', (request, response, next) => {
+router.post('/customers/:customerID/step.down', (request, response, next) => {
     const { userID, params: { customerID } } = request
 
     stepDown({ userID, customerID })
