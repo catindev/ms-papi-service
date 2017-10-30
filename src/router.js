@@ -92,7 +92,7 @@ router.get('/customers', (request, response, next) => {
 })
 
 
-router.put('/customers/:customerID/reject', (request, response, next) => {
+router.put('/customers/:customerID/reject', cache(10), (request, response, next) => {
     const { userID, params: { customerID }, body: { comment, reason } } = request
 
     if (!reason) return response.status(400).json({
@@ -106,7 +106,7 @@ router.put('/customers/:customerID/reject', (request, response, next) => {
 })
 
 
-router.put('/customers/:customerID/deal', (request, response, next) => {
+router.put('/customers/:customerID/deal', cache(10), (request, response, next) => {
     const { userID, params: { customerID }, body: { comment, amount } } = request
 
     if (!amount) return response.status(400).json({
@@ -120,7 +120,7 @@ router.put('/customers/:customerID/deal', (request, response, next) => {
 })
 
 
-router.get('/customers/closed', (request, response, next) => {
+router.get('/customers/closed', cache(10), (request, response, next) => {
     const { userID, query: { skip } } = request
 
     closedCustomers({ userID })
@@ -154,7 +154,7 @@ router.get('/customers/:customerID/call', (request, response, next) => {
         .catch(next)
 })
 
-router.get('/customers/:customerID', (request, response, next) => {
+router.get('/customers/:customerID', cache(10), (request, response, next) => {
     const { userID, params: { customerID } } = request
 
     customerById({ userID, customerID })
