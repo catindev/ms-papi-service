@@ -91,7 +91,13 @@ async function customerById({ userID, customerID, params = false }) {
     let customer = await Customer.findOne({ account: _id, _id: customerID })
         .populate('account trunk user').lean().exec()
 
-    if (customer) customer.phones = customer.phones.map(formatNumberForHumans)
+    if (!customer) throw new CustomError('Клиент не найден', 404)   
+
+    if (customer.user && customer.user.toString() !== userID.toString()) 
+        throw new CustomError('Клиент был назначен на другого менеджера', 400)
+    if (!customer.user) await Customer.update({ _id: customerID }, { user: userID })
+
+    customer.phones = customer.phones.map(formatNumberForHumans)
 
     const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id').lean().exec()
 
@@ -182,14 +188,14 @@ async function updateCustomer({ userID, customerID, body }) {
 
     const { account: { _id } } = await userById({ userID })
 
-    const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
-    if (!customer) throw new CustomError('Клиент не найден', 400)
+    const customer = await Customer.findOne({ _id: customerID, user: userID, account: _id }).lean().exec()
+    if (!customer) throw new CustomError('Клиент не найден или назначен на другого менеджера', 400)
 
     const { funnelStep } = customer  
     if (funnelStep === 'lead' || 'cold') body.funnelStep = 'in-progress'  
 
     return await Customer.findOneAndUpdate(
-        { _id: customerID, account: _id }, 
+        { _id: customerID }, 
         { $set: body }, { new: true }
     )
 }
