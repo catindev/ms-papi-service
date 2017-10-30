@@ -75,10 +75,7 @@ const customerSchema = new Schema({
         amount: Number,
         comment: String
     },
-    reject: {
-        reason: String,
-        comment: String
-    }
+    rejectReason: String
 }, { strict: false })
 
 customerSchema.pre('save', function(next) {

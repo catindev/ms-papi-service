@@ -113,7 +113,11 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
 
     return await Customer.update(
       { _id: userID, account: _id }, 
-      { reject:{ reason, comment } }
+      { 
+        funnelStep: 'reject', 
+        rejectReason: reason,
+        notes: comment.length > 0? comment : ''
+      }
     )
 
 }
