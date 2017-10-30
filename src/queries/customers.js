@@ -1,5 +1,5 @@
 const toObjectId = require('mongoose').Types.ObjectId
-const { Account, Customer, Call, Trunk } = require('../schema')
+const { Account, Customer, Call, Trunk, Param } = require('../schema')
 const CustomError = require('../utils/error')
 const formatNumber = require('../utils/formatNumber')
 const formatNumberForHumans = require('../utils/formatNumberForHumans')
@@ -79,13 +79,13 @@ async function createColdLead({ userID, data }) {
 }
 
 
-async function customerById({ userID, customerID }) {
+async function customerById({ userID, customerID, params = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
     const { account: { _id } } = await userById({ userID })
 
-    const customer = await Customer.findOne({ account: _id, _id: customerID })
+    let customer = await Customer.findOne({ account: _id, _id: customerID })
         .populate('account trunk user').exec()
 
     if (customer) customer.phones = customer.phones.map(formatNumberForHumans)
@@ -94,14 +94,18 @@ async function customerById({ userID, customerID }) {
         const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id')
 
         if (calls.length > 0) {
-            const result = Object.assign({}, customer.toObject(), { calls })
-            result.calls = result.calls.map(call => {
+            customer = Object.assign({}, customer.toObject(), { calls })
+            customer.calls = customer.calls.map(call => {
                 const clone = Object.assign({}, call.toObject())
                 clone.date = humanDate(clone.date)
                 return clone
             })
-            return result
         }
+    }
+
+    if (params) {
+        const params = Params.find({ account: _id })
+        customer = Object.assign({}, customer, { params })
     }
 
     return customer

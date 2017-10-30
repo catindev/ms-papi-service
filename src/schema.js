@@ -108,6 +108,15 @@ const Call = mongoose.model('Call', new Schema({
     isCallback: Boolean
 }))
 
+const Param = mongoose.model('Param', new Schema({
+    account: { type: ObjectId, ref: 'Account' },
+    name: String,
+    id: String,
+    type: { type: String, enum: ['text', 'select', 'multiselect'], default: 'text' },
+    items: [String],
+    description: String
+}))
+
 
 module.exports = {
     Log,
@@ -117,5 +126,6 @@ module.exports = {
     Session,
     Trunk,
     Call,
-    Customer
+    Customer,
+    Param
 }

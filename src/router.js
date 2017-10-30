@@ -155,9 +155,9 @@ router.get('/customers/:customerID/call', (request, response, next) => {
 })
 
 router.get('/customers/:customerID', cache(10), (request, response, next) => {
-    const { userID, params: { customerID } } = request
+    const { userID, params: { customerID }, query: { params } } = request
 
-    customerById({ userID, customerID })
+    customerById({ userID, customerID, params })
         .then(customer => response.json({ status: 200, customer }))
         .catch(next)
 })
