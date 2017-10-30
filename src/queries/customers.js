@@ -105,6 +105,19 @@ async function cutomerById({ userID, customerID }) {
     return customer
 }
 
+async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof customerID === 'string') customerID = toObjectId(customerID) 
+    
+    const { account: { _id } } = await userById({ userID }) 
+
+    return await Customer.update(
+      { _id: userID, account: _id }, 
+      { reject:{ reason, comment } }
+    )
+
+}
+
 
 async function funnel({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -178,4 +191,4 @@ async function call({ userID, customerID }) {
 }
 
 
-module.exports = { search, leads, call, coldLeads, createColdLead, cutomerById }
+module.exports = { search, leads, call, coldLeads, createColdLead, cutomerById, rejectCustomer }

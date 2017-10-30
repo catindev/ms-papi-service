@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const { createPassword, verifyPassword } = require('./queries/sessions')
-const { search, leads, call, coldLeads, createColdLead, cutomerById } = require('./queries/customers')
+const { search, leads, call, coldLeads, createColdLead, cutomerById, rejectCustomer } = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
     name: 'ms-papi-service',
@@ -61,10 +61,8 @@ router.post('/customers/cold.leads', (request, response, next) => {
 
 router.get('/customers', (request, response, next) => {
     // TODO: параметр [ids]. Зачем?
-
     const { userID, query: { step, searchQuery, options, fields } } = request
 
-    console.log(options)
     search({ userID, step, searchQuery, options, fields })
         .then(items => response.json({ status: 200, items }))
         .catch(next)
@@ -76,6 +74,19 @@ router.get('/customers/:customerID', (request, response, next) => {
 
     cutomerById({ userID, customerID })
         .then(customer => response.json({ status: 200, customer }))
+        .catch(next)
+})
+
+router.put('/customers/:customerID/reject', (request, response, next) => {
+    const { userID, params: { customerID }, body: { comment, reason } } = request
+
+    if (!reason) return response.status(400).json({
+        status: 400,
+        message: 'Заполните причину отказа'
+    })
+
+    rejectCustomer({ userID, customerID, comment, reason })
+        .then(() => response.json({ status: 200 }))
         .catch(next)
 })
 
