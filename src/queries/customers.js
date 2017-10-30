@@ -214,16 +214,19 @@ async function funnel({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id, funnelSteps } } = await userById({ userID })
-    
+
     funnelSteps.unshift('in-progress')
 
     const query = { account: _id, user: userID, funnelStep: { $in: funnelSteps } }
     const customers = await Customer.find(query)
 
+    if (!customers || customers.length === 0) return []
+
     return funnelSteps.reduce((result, step) => {
         result.push({
             name: step,
-            customers: customers.filter(customer => customer.funnelStep === step)
+            customers: customers
+                .filter(customer => customer.funnelStep === step)
         })
         return result
     }, [])
