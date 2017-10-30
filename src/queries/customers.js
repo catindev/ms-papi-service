@@ -86,7 +86,7 @@ async function customerById({ userID, customerID }) {
     const { account: { _id } } = await userById({ userID })
 
     const customer = await Customer.findOne({ account: _id, _id: customerID })
-        .populate('account trunk').exec()
+        .populate('account trunk user').exec()
 
     if (customer) customer.phones = customer.phones.map(formatNumberForHumans)
 
