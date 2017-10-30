@@ -3,7 +3,7 @@ const { createPassword, verifyPassword } = require('./queries/sessions')
 const { 
     search, leads, call, coldLeads, createColdLead, 
     customerById, rejectCustomer, dealCustomer, closedCustomers,
-    updateCustomer
+    updateCustomer, funnel
 } = require('./queries/customers')
 
 const mcache = require('memory-cache')
@@ -133,7 +133,7 @@ router.get('/customers/closed', cache(10), (request, response, next) => {
 router.get('/customers/funnel', (request, response, next) => {
     const { userID, query: { step = 'lead', skip = 0 } } = request
 
-    search({ userID, step, skip })
+    funnel({ userID, step, skip })
         .then(items => response.json({ status: 200, items }))
         .catch(next)
 })

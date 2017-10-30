@@ -218,14 +218,13 @@ async function funnel({ userID }) {
 
     const { account: { _id, funnelSteps } } = await userById({ userID })
 
-    const query = {
-        account: _id,
-        user: userID,
-        funnelStep: { $in: Object.assign(['in-progress'], funnelSteps) }
-    }
-
+    const funnel = Object.assign(['in-progress'], funnelSteps)
+    const query = { account: _id, user: userID, funnelStep: { $in: funnel } }
     const customers = await Customer.find(query)
+    return customers
 
+    const reject = customers.filter(customer => customer.funnelStep === 'reject')
+    const deal = customers.filter(customer => customer.funnelStep === 'deal')
 }
 
 
@@ -288,5 +287,5 @@ async function call({ userID, customerID }) {
 module.exports = { 
   search, leads, call, coldLeads, createColdLead, 
   customerById, rejectCustomer, dealCustomer, closedCustomers,
-  updateCustomer
+  updateCustomer, funnel
 }
