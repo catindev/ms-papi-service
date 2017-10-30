@@ -1,28 +1,37 @@
 const router = require('express').Router()
 const { createPassword, verifyPassword } = require('./queries/sessions')
-const { 
-    search, leads, call, coldLeads, createColdLead, 
-    customerById, rejectCustomer, dealCustomer, closedCustomers,
-    updateCustomer, funnel
+const {
+    search,
+    leads,
+    call,
+    coldLeads,
+    createColdLead,
+    customerById,
+    rejectCustomer,
+    dealCustomer,
+    closedCustomers,
+    updateCustomer,
+    funnel,
+    coldCall
 } = require('./queries/customers')
 
 const mcache = require('memory-cache')
 const cache = (duration) => {
-  return (request, response, next) => {
-    let key = '__express__' + request.originalUrl || request.url
-    let cachedBody = mcache.get(key)
-    if (cachedBody) {
-      response.send(cachedBody)
-      return
-    } else {
-      response.sendResponse = response.send
-      response.send = (body) => {
-        mcache.put(key, body, duration * 1000)
-        response.sendResponse(body)
-      }
-      next()
+    return (request, response, next) => {
+        let key = '__express__' + request.originalUrl || request.url
+        let cachedBody = mcache.get(key)
+        if (cachedBody) {
+            response.send(cachedBody)
+            return
+        } else {
+            response.sendResponse = response.send
+            response.send = (body) => {
+                mcache.put(key, body, duration * 1000)
+                response.sendResponse(body)
+            }
+            next()
+        }
     }
-  }
 }
 
 
@@ -41,7 +50,7 @@ router.post('/sessions/password', (request, response, next) => {
     })
 
     createPassword({ phone })
-        .then( send => response.status(200).json({ status: 200, send }))
+        .then(send => response.status(200).json({ status: 200, send }))
         .catch(next)
 })
 
@@ -61,7 +70,7 @@ router.post('/sessions', (request, response, next) => {
 router.get('/customers/leads', cache(10), (request, response, next) => {
     const { userID, query: { skip } } = request
 
-    leads({ userID, step:'lead', skip })
+    leads({ userID, step: 'lead', skip })
         .then(items => response.json({ status: 200, items }))
         .catch(next)
 })
@@ -130,7 +139,7 @@ router.get('/customers/closed', cache(10), (request, response, next) => {
 })
 
 
-router.get('/customers/funnel', (request, response, next) => {
+router.get('/customers/funnel', cache(10), (request, response, next) => {
     const { userID, query: { step = 'lead', skip = 0 } } = request
 
     funnel({ userID, step, skip })
@@ -143,13 +152,28 @@ router.get('/customers/:customerID/call', (request, response, next) => {
 
     call({ userID, customerID })
         .then(result => {
-            result === '{ success: true }'? 
-                response.json({ status: 200 })
-                :
+            console.log('callback', result)
+            result === '{ success: true }' ?
+                response.json({ status: 200 }) :
                 response.status(500).json({ status: 500, message: 'Отмена звонка' })
         })
         .catch(next)
 })
+
+
+router.get('/customers/:customerID/cold.call', (request, response, next) => {
+    const { userID, params: { customerID } } = request
+
+    coldCall({ userID, customerID })
+        .then(result => {
+            console.log('cold call', result)
+            result === '{ success: true }' ?
+                response.json({ status: 200 }) :
+                response.status(500).json({ status: 500, message: 'Отмена звонка' })
+        })
+        .catch(next)
+})
+
 
 router.get('/customers/:customerID', cache(10), (request, response, next) => {
     const { userID, params: { customerID }, query: { params } } = request

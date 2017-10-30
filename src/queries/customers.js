@@ -66,7 +66,7 @@ async function createColdLead({ userID, data }) {
 
     data.phones = formatNumber(data.phones)
     const customer = await Customer.findOne({ account: _id, phones: data.phones })
-    if(customer) throw new CustomError('Номер уже зарегистрирован', 400)
+    if (customer) throw new CustomError('Номер уже зарегистрирован', 400)
 
     const trunk = await Trunk.findOne({ account: _id })
 
@@ -92,11 +92,11 @@ async function customerById({ userID, customerID, params = false }) {
     let customer = await Customer.findOne({ account: _id, _id: customerID })
         .populate('account trunk user').exec()
 
-    if (!customer) throw new CustomError('Клиент не найден', 404)   
+    if (!customer) throw new CustomError('Клиент не найден', 404)
 
-    if (customer.user && !customer.user._id.equals(userID)) 
+    if (customer.user && !customer.user._id.equals(userID))
         throw new CustomError('Чужой клиент', 400)
-    
+
     if (!customer.user) {
         await Customer.update({ _id: customerID }, { user: userID })
         customer.user = user
@@ -135,7 +135,7 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
-    const { funnelStep } = customer    
+    const { funnelStep } = customer
 
     return await Customer.findOneAndUpdate({ _id: customerID, account: _id }, {
         $set: {
@@ -161,7 +161,7 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
-    const { funnelStep } = customer 
+    const { funnelStep } = customer
 
     return await Customer.findOneAndUpdate({ _id: customerID, account: _id }, {
         $set: {
@@ -180,11 +180,11 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
 async function closedCustomers({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
-    const { account: { _id } } = await userById({ userID })        
+    const { account: { _id } } = await userById({ userID })
 
-    const customers = await Customer.find({ 
-        account: _id, 
-        $or:[ { funnelStep: 'reject' }, { funnelStep: 'deal' } ] 
+    const customers = await Customer.find({
+        account: _id,
+        $or: [{ funnelStep: 'reject' }, { funnelStep: 'deal' }]
     }).lean().exec()
 
     const reject = customers.filter(customer => customer.funnelStep === 'reject')
@@ -203,13 +203,10 @@ async function updateCustomer({ userID, customerID, body }) {
     const customer = await Customer.findOne({ _id: customerID, user: userID, account: _id }).lean().exec()
     if (!customer) throw new CustomError('Клиент не найден или назначен на другого менеджера', 400)
 
-    const { funnelStep } = customer  
-    if (funnelStep === 'lead' || 'cold') body.funnelStep = 'in-progress'  
+    const { funnelStep } = customer
+    if (funnelStep === 'lead' || 'cold') body.funnelStep = 'in-progress'
 
-    return await Customer.findOneAndUpdate(
-        { _id: customerID }, 
-        { $set: body }, { new: true }
-    )
+    return await Customer.findOneAndUpdate({ _id: customerID }, { $set: body }, { new: true })
 }
 
 
@@ -217,16 +214,18 @@ async function funnel({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id, funnelSteps } } = await userById({ userID })
+    
     funnelSteps.unshift('in-progress')
+
     const query = { account: _id, user: userID, funnelStep: { $in: funnelSteps } }
-    const customers = await Customer.find(query)    
+    const customers = await Customer.find(query)
 
     return funnelSteps.reduce((result, step) => {
-      result.push({
-        name: step === 'in-progress'? 'В работе' : step,
-        customers: customers.filter(customer => customer.funnelStep === step)
-      })
-      return result
+        result.push({
+            name: step,
+            customers: customers.filter(customer => customer.funnelStep === step)
+        })
+        return result
     }, [])
 }
 
@@ -310,8 +309,17 @@ async function coldCall({ userID, customerID }) {
 }
 
 
-module.exports = { 
-  search, leads, call, coldLeads, createColdLead, 
-  customerById, rejectCustomer, dealCustomer, closedCustomers,
-  updateCustomer, funnel, coldCall
+module.exports = {
+    search,
+    leads,
+    call,
+    coldLeads,
+    createColdLead,
+    customerById,
+    rejectCustomer,
+    dealCustomer,
+    closedCustomers,
+    updateCustomer,
+    funnel,
+    coldCall
 }
