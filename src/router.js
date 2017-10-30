@@ -2,7 +2,8 @@ const router = require('express').Router()
 const { createPassword, verifyPassword } = require('./queries/sessions')
 const { 
     search, leads, call, coldLeads, createColdLead, 
-    customerById, rejectCustomer, dealCustomer, closedCustomers
+    customerById, rejectCustomer, dealCustomer, closedCustomers,
+    updateCustomer
 } = require('./queries/customers')
 
 const mcache = require('memory-cache')
@@ -158,6 +159,14 @@ router.get('/customers/:customerID', cache(10), (request, response, next) => {
     const { userID, params: { customerID }, query: { params } } = request
 
     customerById({ userID, customerID, params })
+        .then(customer => response.json({ status: 200, customer }))
+        .catch(next)
+})
+
+router.put('/customers/:customerID', (request, response, next) => {
+    const { userID, params: { customerID }, body } = request
+
+    updateCustomer({ userID, customerID, body })
         .then(customer => response.json({ status: 200, customer }))
         .catch(next)
 })

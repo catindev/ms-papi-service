@@ -175,6 +175,25 @@ async function closedCustomers({ userID }) {
 
 }
 
+async function updateCustomer({ userID, customerID, body }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof customerID === 'string') customerID = toObjectId(customerID)
+
+    const { account: { _id } } = await userById({ userID })
+
+    const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
+    if (!customer) throw new CustomError('Клиент не найден', 400)
+
+    const { funnelStep } = customer  
+    if (funnelStep === 'lead' || 'cold') body.funnelStep = 'in-progress'  
+
+    return await Customer.findOneAndUpdate(
+        { _id: customerID, account: _id }, 
+        { $set: body }, { new: true }
+    )
+}
+
+
 async function funnel({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
@@ -249,5 +268,6 @@ async function call({ userID, customerID }) {
 
 module.exports = { 
   search, leads, call, coldLeads, createColdLead, 
-  customerById, rejectCustomer, dealCustomer, closedCustomers 
+  customerById, rejectCustomer, dealCustomer, closedCustomers,
+  updateCustomer
 }
