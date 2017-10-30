@@ -102,12 +102,14 @@ async function customerById({ userID, customerID, params = false }) {
         customer.user = user
     }
 
+    customer = customer.toObject()
+
     customer.phones = customer.phones.map(formatNumberForHumans)
 
     const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id').lean().exec()
 
     if (calls.length > 0) {
-        customer = Object.assign({}, customer.toObject(), { calls })
+        customer = Object.assign({}, customer, { calls })
         customer.calls = customer.calls.map(call => {
             const clone = Object.assign({}, call)
             clone.date = humanDate(clone.date)
