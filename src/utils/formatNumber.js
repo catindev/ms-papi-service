@@ -12,24 +12,12 @@ module.exports = function formatNumber( phone, strict = true ) {
     if ( !phone ) return strict ? error('введите номер') : false
 
     let formatted = phone.replace(/ /g,'')
-
-    if ( formatted.length > 4 ) formatted = formatted.replace('+7','')
-
-    if ( formatted.length > 6 && formatted[1] === '8') formatted = formatted.replace('8','')    
-
     formatted = formatted.replace(/\D/g,'')
 
-    console.log('format', formatted)
-
-    const { length } = formatted
-
-    if ( length > 10 ) 
-        return strict ? error('в номере лишние цифры (не больше 10)') : false
-
-    if ( length < 9 && length > 6) 
-        return strict ? error('номер слишком короткий (больше 6, но меньше 10)') : false        
-
-    if ( length === 6 ) formatted = `7212${ formatted }`
-
-    return length === 3? `+${ formatted }` : `+7${ formatted }`
+    let splitted = formatted.split('')
+    if (splitted[0] === '8') splitted[0] = '+7'
+    if (splitted[0] === '7') splitted[0] = '+7'     
+    formatted = splitted.join('')    
+    if ( formatted.length === 6 ) formatted = `+77212${ formatted }`    
+    return formatted
 }

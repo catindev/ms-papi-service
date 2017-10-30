@@ -29,6 +29,7 @@
 
 const format = require('./utils/formatNumber')
 console.log(format('‭87079961095'))
-// console.log(format('‭+7 (701) 932-02-28‬'))
-// console.log(format('‭8 (747) 728-93-69‬'))
-// console.log(format('‭701'))
+console.log(format('‭+7 (701) 932-02-28‬'))
+console.log(format('‭8 (747) 728-93-69‬'))
+console.log(format('‭701'))
+console.log(format('983422'))
