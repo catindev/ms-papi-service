@@ -104,8 +104,8 @@ async function customerById({ userID, customerID, params = false }) {
     }
 
     if (params) {
-        const params = Param.find({ account: _id })
-        if (params) customer = Object.assign({}, customer, { params: params.toObject() })
+        const params = await Param.find({ account: _id }).lean().exec()
+        if (params) customer = Object.assign({}, customer, { params })
     }
 
     return customer
