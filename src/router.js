@@ -86,7 +86,10 @@ router.put('/customers/:customerID/reject', (request, response, next) => {
     })
 
     rejectCustomer({ userID, customerID, comment, reason })
-        .then(() => response.json({ status: 200 }))
+        .then(data => {
+            console.log(data)
+            response.json({ status: 200 })
+        })
         .catch(next)
 })
 
