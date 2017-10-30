@@ -19,6 +19,8 @@ module.exports = function formatNumber( phone, strict = true ) {
 
     formatted = formatted.replace(/\D/g,'')
 
+    console.log('format', formatted)
+
     const { length } = formatted
 
     if ( length > 10 ) 
