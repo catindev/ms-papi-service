@@ -226,7 +226,7 @@ async function funnel({ userID }) {
     const result = []
     return funnelSteps
 
-    return funnelSteps.reduce((result, step) {
+    return funnelSteps.reduce((result, step) => {
       result.push({
         name: step === 'in-progress'? 'В работе' : step,
         customers: customers.filter(customer => customer.funnelStep === 'step')
