@@ -125,11 +125,7 @@ router.get('/customers/closed', cache(10), (request, response, next) => {
     const { userID, query: { skip } } = request
 
     closedCustomers({ userID })
-        .then(items => {
-            const reject = items.filter(item => item.funnelStep === 'reject')
-            const deal = items.filter(item => item.funnelStep === 'deal')
-            response.json({ status: 200, reject, deal })
-        })
+        .then(({ reject, deal }) => response.json({ status: 200, reject, deal }))
         .catch(next)
 })
 
