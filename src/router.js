@@ -12,7 +12,8 @@ const {
     closedCustomers,
     updateCustomer,
     funnel,
-    coldCall
+    coldCall,
+    stepDown
 } = require('./queries/customers')
 
 const mcache = require('memory-cache')
@@ -144,6 +145,14 @@ router.get('/customers/funnel', cache(10), (request, response, next) => {
 
     funnel({ userID, step, skip })
         .then(items => response.json({ status: 200, items }))
+        .catch(next)
+})
+
+router.get('/customers/:customerID/step.down', (request, response, next) => {
+    const { userID, params: { customerID } } = request
+
+    stepDown({ userID, customerID })
+        .then(customer => response.json({ status: 200, customer }))
         .catch(next)
 })
 

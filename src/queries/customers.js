@@ -233,6 +233,28 @@ async function funnel({ userID }) {
 }
 
 
+async function stepDown({ userID, customerID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof customerID === 'string') customerID = toObjectId(customerID)
+
+    const { account: { _id, funnelSteps } } = await userById({ userID })
+
+    const customer = await Customer.findOne({
+        _id: customerID,
+        user: userID,
+        account: _id
+    }).lean().exec()
+
+    if (!customer) throw new CustomError('Клиент не найден или назначен на другого менеджера', 400)
+
+    funnelSteps.unshift('in-progress')
+
+    const index = funnelSteps.indexOf(customer.funnelStep)
+
+    return await Customer.findOneAndUpdate({ _id: customerID }, { $set: { funnelStep: funnelSteps[index + 1] } }, { new: true })
+}
+
+
 async function search({
     userID,
     step,
@@ -324,5 +346,6 @@ module.exports = {
     closedCustomers,
     updateCustomer,
     funnel,
-    coldCall
+    coldCall,
+    stepDown
 }
