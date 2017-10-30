@@ -220,6 +220,7 @@ async function funnel({ userID }) {
 
     const funnel = Object.assign(['in-progress'], funnelSteps)
     const query = { account: _id, user: userID, funnelStep: { $in: funnel } }
+    console.log(query)
     const customers = await Customer.find(query)
     return customers
 
@@ -283,9 +284,32 @@ async function call({ userID, customerID }) {
     return await request(options)
 }
 
+async function coldCall({ userID, customerID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof customerID === 'string') customerID = toObjectId(customerID)
+
+    const { account: { _id }, phones } = await userById({ userID })
+    const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk').exec()
+
+    const options = {
+        uri: 'http://185.22.65.50/cold_call.php',
+        qs: {
+            cn: customer.phones[0].replace('+7', '8'),
+            un: phones[0].replace('+7', '8'),
+            tr: customer.trunk.phone.replace('+7', '8'),
+            call_id: 'cold_call',
+            secret_key: '2c22d5c2ed37ea03db53ff931e7a9cf6'
+        },
+        headers: { 'User-Agent': 'Request-Promise' },
+        json: true
+    }
+
+    return await request(options)
+}
+
 
 module.exports = { 
   search, leads, call, coldLeads, createColdLead, 
   customerById, rejectCustomer, dealCustomer, closedCustomers,
-  updateCustomer, funnel
+  updateCustomer, funnel, coldCall
 }
