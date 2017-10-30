@@ -118,7 +118,6 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
     const { funnelStep } = customer    
-    console.log('funnelStep', funnelStep)  
 
     return await Customer.findOneAndUpdate({ _id: customerID, account: _id }, {
         $set: {
@@ -140,9 +139,11 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
 
     const { account: { _id } } = await userById({ userID })
 
-    const customer = Customer.findOne({ _id: customerID, account: _id })
+    const customer = Customer.findOne({ _id: customerID, account: _id }).lean().exec()
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
+
+    const { funnelStep } = customer 
 
     return await Customer.findOneAndUpdate({ _id: customerID, account: _id }, {
         $set: {
@@ -150,7 +151,7 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
             deal: {
                 amount,
                 comment,
-                previousStep: customer.funnelStep,
+                previousStep: funnelStep,
                 date: new Date()
             },
         }
