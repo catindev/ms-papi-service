@@ -19,11 +19,13 @@
   },
   "homepage": "https://github.com/catindev/ms-papi-service#readme",
   "dependencies": {
+    "apicache": "^1.1.0",
     "body-parser": "^1.18.1",
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
     "ejs": "^2.5.7",
     "express": "^4.15.4",
+    "express-rate-limit": "^2.9.0",
     "moment": "^2.19.1",
     "mongoose": "^4.11.12",
     "mongoose-ttl": "^0.0.3",
