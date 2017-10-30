@@ -72,14 +72,6 @@ router.get('/customers', (request, response, next) => {
 })
 
 
-router.get('/customers/:customerID', (request, response, next) => {
-    const { userID, params: { customerID } } = request
-
-    customerById({ userID, customerID })
-        .then(customer => response.json({ status: 200, customer }))
-        .catch(next)
-})
-
 router.put('/customers/:customerID/reject', (request, response, next) => {
     const { userID, params: { customerID }, body: { comment, reason } } = request
 
@@ -142,6 +134,13 @@ router.get('/customers/:customerID/call', (request, response, next) => {
         .catch(next)
 })
 
+router.get('/customers/:customerID', (request, response, next) => {
+    const { userID, params: { customerID } } = request
+
+    customerById({ userID, customerID })
+        .then(customer => response.json({ status: 200, customer }))
+        .catch(next)
+})
 
 router.all('*', (request, response) => response.status(404).json({
     status: 404,
