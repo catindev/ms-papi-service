@@ -94,8 +94,9 @@ async function customerById({ userID, customerID, params = false }) {
 
     if (!customer) throw new CustomError('Клиент не найден', 404)   
 
+    console.log(customer.user.toString(), userID.toString(), customer.user.toString() !== userID.toString())    
     if (customer.user && customer.user.toString() !== userID.toString()) 
-        throw new CustomError('Клиент был назначен на другого менеджера', 400)
+        throw new CustomError('Чужой клиент', 400)
     
     if (!customer.user) {
         await Customer.update({ _id: customerID }, { user: userID })
