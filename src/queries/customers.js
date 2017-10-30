@@ -113,12 +113,12 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
 
     const { account: { _id } } = await userById({ userID })
 
-    const customer = Customer.findOne({ _id: customerID, account: _id }).lean().exec()
+    const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
-    // const { funnelStep } = customer.toObject()    
-    console.log('customer', customer)  
+    const { funnelStep } = customer    
+    console.log('funnelStep', funnelStep)  
 
     return await Customer.findOneAndUpdate({ _id: customerID, account: _id }, {
         $set: {
