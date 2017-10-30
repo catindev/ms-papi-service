@@ -90,17 +90,15 @@ async function customerById({ userID, customerID, params = false }) {
 
     if (customer) customer.phones = customer.phones.map(formatNumberForHumans)
 
-    if (customer.funnelStep === 'lead' || customer.funnelStep === 'cold') {
-        const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id').lean().exec()
+    const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id').lean().exec()
 
-        if (calls.length > 0) {
-            customer = Object.assign({}, customer, { calls })
-            customer.calls = customer.calls.map(call => {
-                const clone = Object.assign({}, call)
-                clone.date = humanDate(clone.date)
-                return clone
-            })
-        }
+    if (calls.length > 0) {
+        customer = Object.assign({}, customer, { calls })
+        customer.calls = customer.calls.map(call => {
+            const clone = Object.assign({}, call)
+            clone.date = humanDate(clone.date)
+            return clone
+        })
     }
 
     if (params) {
