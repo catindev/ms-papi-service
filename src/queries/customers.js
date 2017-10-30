@@ -86,15 +86,15 @@ async function customerById({ userID, customerID, params = false }) {
     const { account: { _id } } = await userById({ userID })
 
     let customer = await Customer.findOne({ account: _id, _id: customerID })
-        .populate('account trunk user').exec()
+        .populate('account trunk user').lean().exec()
 
     if (customer) customer.phones = customer.phones.map(formatNumberForHumans)
 
     if (customer.funnelStep === 'lead' || customer.funnelStep === 'cold') {
-        const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id')
+        const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id').lean().exec()
 
         if (calls.length > 0) {
-            customer = Object.assign({}, customer.toObject(), { calls })
+            customer = Object.assign({}, customer, { calls })
             customer.calls = customer.calls.map(call => {
                 const clone = Object.assign({}, call.toObject())
                 clone.date = humanDate(clone.date)
