@@ -187,8 +187,8 @@ async function closedCustomers({ userID }) {
         $or:[ { funnelStep: 'reject' }, { funnelStep: 'deal' } ] 
     }).lean().exec()
 
-    const reject = items.filter(item => item.funnelStep === 'reject')
-    const deal = items.filter(item => item.funnelStep === 'deal')
+    const reject = customers.filter(customer => customer.funnelStep === 'reject')
+    const deal = customers.filter(customer => customer.funnelStep === 'deal')
 
     return { reject, deal }
 
