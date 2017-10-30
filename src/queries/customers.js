@@ -117,7 +117,8 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
-    console.log('previousStep', customer.funnelStep)  
+    const { funnelStep } = customer.toObject()    
+    console.log('customer', customer)  
 
     return await Customer.findOneAndUpdate({ _id: customerID, account: _id }, {
         $set: {
@@ -125,7 +126,7 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
             reject: {
                 reason,
                 comment,
-                previousStep: customer.funnelStep,
+                previousStep: funnelStep,
                 date: new Date()
             },
         }
