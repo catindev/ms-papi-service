@@ -217,10 +217,8 @@ async function funnel({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id, funnelSteps } } = await userById({ userID })
-
-    const funnel = Object.assign(['in-progress'], funnelSteps)
-    const query = { account: _id, user: userID, funnelStep: { $in: funnel } }
-    console.log(query)
+    funnelSteps.push('in-progress')
+    const query = { account: _id, user: userID, funnelStep: { $in: funnelSteps } }
     const customers = await Customer.find(query)
     return customers
 
