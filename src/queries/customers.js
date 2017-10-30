@@ -164,7 +164,7 @@ async function closedCustomers({ userID }) {
 
     const { account: { _id } } = await userById({ userID })        
 
-    return await Customers.find({ 
+    return await Customer.find({ 
         account: _id, 
         $or:[ { funnelStep: 'reject' }, { funnelStep: 'deal' } ] 
     })
