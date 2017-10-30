@@ -220,6 +220,8 @@ async function funnel({ userID }) {
     funnelSteps.unshift('in-progress')
     const query = { account: _id, user: userID, funnelStep: { $in: funnelSteps } }
     const customers = await Customer.find(query)
+
+    funnelSteps[0] = 'В работе'
     return funnelSteps
 
     const reject = customers.filter(customer => customer.funnelStep === 'reject')
