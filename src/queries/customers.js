@@ -94,8 +94,7 @@ async function customerById({ userID, customerID, params = false }) {
 
     if (!customer) throw new CustomError('Клиент не найден', 404)   
 
-    console.log('equals',customer.user.toString(),customer.user._id.equals(userID) )    
-    if (customer.user && !customer.user.equals(userID)) 
+    if (customer.user && !customer.user._id.equals(userID)) 
         throw new CustomError('Чужой клиент', 400)
     
     if (!customer.user) {
@@ -108,7 +107,7 @@ async function customerById({ userID, customerID, params = false }) {
     const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id').lean().exec()
 
     if (calls.length > 0) {
-        customer = Object.assign({}, customer, { calls })
+        customer = Object.assign({}, customer.toObject(), { calls })
         customer.calls = customer.calls.map(call => {
             const clone = Object.assign({}, call)
             clone.date = humanDate(clone.date)
