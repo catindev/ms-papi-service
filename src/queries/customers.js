@@ -112,11 +112,10 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
     const { account: { _id } } = await userById({ userID }) 
 
     return await Customer.findOneAndUpdate(
-      { _id: userID, account: _id }, 
+      { _id: customerID, account: _id }, 
       { $set: { 
         funnelStep: 'reject', 
-        rejectReason: reason,
-        notes: comment.length > 0? comment : ''
+        reject:{ reason, comment },
       } },
       { new: true }
     )
