@@ -79,7 +79,7 @@ async function createColdLead({ userID, data }) {
 }
 
 
-async function cutomerById({ userID, customerID }) {
+async function customerById({ userID, customerID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
@@ -161,12 +161,13 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
 
 async function closedCustomers({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
+
     const { account: { _id } } = await userById({ userID })        
 
     return await Customers.find({ 
         account: _id, 
         $or:[ { funnelStep: 'reject' }, { funnelStep: 'deal' } ] 
-    }).lean().exec()
+    })
 
 }
 
@@ -243,5 +244,6 @@ async function call({ userID, customerID }) {
 
 
 module.exports = { 
-  search, leads, call, coldLeads, createColdLead, cutomerById, rejectCustomer, dealCustomer, closedCustomers 
+  search, leads, call, coldLeads, createColdLead, 
+  customerById, rejectCustomer, dealCustomer, closedCustomers 
 }

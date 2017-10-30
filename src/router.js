@@ -2,7 +2,7 @@ const router = require('express').Router()
 const { createPassword, verifyPassword } = require('./queries/sessions')
 const { 
     search, leads, call, coldLeads, createColdLead, 
-    cutomerById, rejectCustomer, dealCustomer, closedCustomers
+    customerById, rejectCustomer, dealCustomer, closedCustomers
 } = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
@@ -75,7 +75,7 @@ router.get('/customers', (request, response, next) => {
 router.get('/customers/:customerID', (request, response, next) => {
     const { userID, params: { customerID } } = request
 
-    cutomerById({ userID, customerID })
+    customerById({ userID, customerID })
         .then(customer => response.json({ status: 200, customer }))
         .catch(next)
 })
