@@ -64,9 +64,12 @@ async function createColdLead({ userID, data }) {
 
     const { account: { _id } } = await userById({ userID })
 
+    data.phones = formatNumber(data.phones)
+    const customer = await Customer.findOne({ account: _id, phones: data.phones })
+    if(customer) throw new CustomError('Номер уже зарегистрирован', 400)
+
     const trunk = await Trunk.findOne({ account: _id })
 
-    data.phones = formatNumber(data.phones)
 
     const newCustomer = new Customer(Object.assign({}, data, {
         account: _id,
