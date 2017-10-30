@@ -64,7 +64,7 @@ const customerSchema = new Schema({
     trunk: { type: ObjectId, ref: 'Trunk' },
     user: { type: ObjectId, ref: 'User' },
     created: { type: Date, default: Date.now() },
-    lastUpdate: { type: Date, default: Date.now() },
+    lastUpdate: { type: Date, default: new Date() },
     name: String,
     details: String,
     phones: [String],
@@ -73,11 +73,15 @@ const customerSchema = new Schema({
     nonTargetedReason: String,
     deal: {
         amount: Number,
-        comment: String
+        comment: String,
+        previousStep: String,
+        date: Date
     },
     reject: {
         reason: String,
-        comment: String
+        comment: String,
+        previousStep: String,
+        date: Date
     }
 }, { strict: false })
 

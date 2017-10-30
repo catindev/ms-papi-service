@@ -1,6 +1,9 @@
 const router = require('express').Router()
 const { createPassword, verifyPassword } = require('./queries/sessions')
-const { search, leads, call, coldLeads, createColdLead, cutomerById, rejectCustomer } = require('./queries/customers')
+const { 
+    search, leads, call, coldLeads, createColdLead, 
+    cutomerById, rejectCustomer, dealCustomer 
+} = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
     name: 'ms-papi-service',
@@ -86,10 +89,21 @@ router.put('/customers/:customerID/reject', (request, response, next) => {
     })
 
     rejectCustomer({ userID, customerID, comment, reason })
-        .then(data => {
-            console.log(data)
-            response.json({ status: 200 })
-        })
+        .then(() => response.json({ status: 200 }))
+        .catch(next)
+})
+
+
+router.put('/customers/:customerID/deal', (request, response, next) => {
+    const { userID, params: { customerID }, body: { comment, amount } } = request
+
+    if (!amount) return response.status(400).json({
+        status: 400,
+        message: 'Заполните сумму сделки'
+    })
+
+    dealCustomer({ userID, customerID, comment, amount })
+        .then(() => response.json({ status: 200 }))
         .catch(next)
 })
 
