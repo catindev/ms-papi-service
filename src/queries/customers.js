@@ -105,7 +105,7 @@ async function customerById({ userID, customerID, params = false }) {
 
     if (params) {
         const params = Param.find({ account: _id })
-        customer = Object.assign({}, customer, { params })
+        if (params) customer = Object.assign({}, customer, { params: params.toObject() })
     }
 
     return customer
