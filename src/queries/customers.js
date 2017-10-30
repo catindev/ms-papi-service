@@ -90,11 +90,11 @@ async function customerById({ userID, customerID, params = false }) {
     const { account: { _id } } = user
 
     let customer = await Customer.findOne({ account: _id, _id: customerID })
-        .populate('account trunk user').lean().exec()
+        .populate('account trunk user').exec()
 
     if (!customer) throw new CustomError('Клиент не найден', 404)   
 
-    console.log('equals',customer.toString() )    
+    console.log('equals',customer.user.toString(),customer.user.equals(userID) )    
     if (customer.user && !customer.user.equals(userID)) 
         throw new CustomError('Чужой клиент', 400)
     
