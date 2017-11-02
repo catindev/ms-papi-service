@@ -294,9 +294,9 @@ async function call({ userID, customerID }) {
 
     if (!customer || customer === null) throw new CustomError('Клиент не найден', 404)
 
-    if (customer.user && !customer.user._id.equals(userID)) {
-        // Сценарий — чужой клиент
-    }
+    // if (customer.user && !customer.user._id.equals(userID)) {
+    //     // Сценарий — чужой клиент
+    // }
 
     if (!customer.user) await Customer.update({ _id: customerID }, { user: userID })
 
