@@ -96,16 +96,11 @@ async function customerById({ userID, customerID, params = false }) {
 
     if (!customer) throw new CustomError('Клиент не найден', 404)
 
-    if (customer.user && !customer.user._id.equals(userID))
-        throw new CustomError('Чужой клиент', 400)
-
-    if (!customer.user) {
-        await Customer.update({ _id: customerID }, { user: userID })
-        customer.user = user
+    if (customer.user && !customer.user._id.equals(userID)) {
+        // Чужой клиент?
     }
 
     customer = customer.toObject()
-
     customer.phones = customer.phones.map(formatNumberForHumans)
 
     const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id').lean().exec()
@@ -296,6 +291,14 @@ async function call({ userID, customerID }) {
 
     const { account: { _id }, phones } = await userById({ userID })
     const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk').exec()
+
+    if (!customer || customer === null) throw new CustomError('Клиент не найден', 404)
+
+    if (customer.user && !customer.user._id.equals(userID)) {
+        // Сценарий — чужой клиент
+    }
+
+    if (!customer.user) await Customer.update({ _id: customerID }, { user: userID })
 
     const options = {
         uri: 'http://185.22.65.50/call.php',
