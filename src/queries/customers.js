@@ -23,7 +23,6 @@ async function leads({ userID, skip = 0 }) {
     const { account: { _id } } = await userById({ userID })
 
     const options = { skip, limit: 50 }
-
     const customers = await Customer.find({
         account: _id,
         funnelStep: 'lead',
@@ -49,11 +48,12 @@ async function coldLeads({ userID, skip = 0 }) {
 
     const { account: { _id } } = await userById({ userID })
 
+    const options = { skip, limit: 50 }
     const customers = await Customer.find({
         account: _id,
         funnelStep: 'cold',
         user: userID
-    }, null, { skip, limit: 50 })
+    })
 
     return customers
 }
