@@ -69,6 +69,7 @@ const customerSchema = new Schema({
     details: String,
     phones: [String],
     notes: String,
+    manual: Boolean,
     funnelStep: String, // lead || cold, in-progress, ...custom, deal || reject
     nonTargetedReason: String,
     deal: {

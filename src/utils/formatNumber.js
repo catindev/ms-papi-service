@@ -21,7 +21,7 @@ module.exports = function formatNumber( phone, strict = true ) {
 
     formatted = splitted.join('')    
     
-    if ( formatted.length === 6 ) formatted = `+77212${ formatted }`    
-    
+    if ( formatted.length === 6 ) return `+77212${ formatted }`    
+    if ( formatted.length === 3 || formatted.length > 10) return `+${ formatted }`        
     return formatted
 }
