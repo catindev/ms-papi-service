@@ -22,11 +22,13 @@ async function leads({ userID, skip = 0 }) {
 
     const { account: { _id } } = await userById({ userID })
 
+    const options = { skip, limit: 50 }
+
     const customers = await Customer.find({
         account: _id,
         funnelStep: 'lead',
         '$or': [{ user: { $exists: false } }, { user: userID }],
-    }, null, { skip, limit: 50 })
+    })
 
     if (customers.length === 0) return customers
 
