@@ -149,7 +149,7 @@ async function customerById({ userID, customerID, params = false }) {
     return customer
 }
 
-async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
+async function rejectCustomer({ userID, customerID, reason, comment = '', name = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
@@ -160,18 +160,21 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
     const { funnelStep } = customer
+    const reject = {
+        reason,
+        comment,
+        previousStep: funnelStep,
+        date: new Date()
+    }
+    if (name) reject.name = name
 
-    return await Customer.findOneAndUpdate({ _id: customerID, account: _id, user: userID }, {
-        $set: {
+    return await Customer.findOneAndUpdate(
+        { _id: customerID, account: _id, user: userID }, 
+        { $set: {
             funnelStep: 'reject',
             lastUpdate: new Date(),
             lastActivity: 'оформлен отказ',
-            reject: {
-                reason,
-                comment,
-                previousStep: funnelStep,
-                date: new Date()
-            },
+            reject
         }
     }, { new: true })
 }
