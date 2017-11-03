@@ -275,7 +275,10 @@ async function stepDown({ userID, customerID }) {
 
     const index = funnelSteps.indexOf(customer.funnelStep)
 
-    return await Customer.findOneAndUpdate({ _id: customerID }, { $set: { funnelStep: funnelSteps[index + 1] } }, { new: true })
+    return await Customer.findOneAndUpdate(
+        { _id: customerID }, 
+        { $set: { funnelStep: funnelSteps[index + 1], lastUpdate: new Date() } }, 
+        { new: true })
 }
 
 
