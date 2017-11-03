@@ -113,7 +113,7 @@ async function customerById({ userID, customerID, params = false }) {
     const user = await userById({ userID })
     const { account: { _id } } = user
 
-    let customer = await Customer.findOne({ account: _id, _id: customerID, user: userID })
+    let customer = await Customer.findOne({ account: _id, _id: customerID })
         .populate('account trunk user').exec()
 
     if (!customer) throw new CustomError('Клиент не найден', 404)
