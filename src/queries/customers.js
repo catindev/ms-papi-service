@@ -348,7 +348,9 @@ async function coldCall({ userID, customerID }) {
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
     const { account: { _id }, phones } = await userById({ userID })
-    const customer = await Customer.findOne({ _id: customerID, userID: userID, account: _id }).populate('trunk').exec()
+    const customer = await Customer
+        .findOne({ _id: customerID, user: userID, account: _id })
+        .populate('trunk').exec()
 
     const options = {
         uri: 'http://185.22.65.50/cold_call.php',
