@@ -13,7 +13,8 @@ const {
     updateCustomer,
     funnel,
     coldCall,
-    stepDown
+    stepDown,
+    recents
 } = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
@@ -69,6 +70,14 @@ router.post('/customers/cold.leads', (request, response, next) => {
 
     createColdLead({ userID, data: body })
         .then(lead => response.json({ status: 200, id: lead._id }))
+        .catch(next)
+})
+
+router.get('/customers/recents', (request, response, next) => {
+    const { userID } = request
+
+    recents({ userID })
+        .then(items => response.json({ status: 200, items }))
         .catch(next)
 })
 

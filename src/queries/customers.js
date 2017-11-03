@@ -71,6 +71,17 @@ async function coldLeads({ userID, skip = 0 }) {
 }
 
 
+async function recents({ userID, skip = 0 }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id } } = await userById({ userID })
+
+    const options = { skip, limit: 50 }
+    const customers = await Customer.find({ account: _id, user: userID }).sort('-lastUpdate')
+
+    return customers
+}
+
 async function createColdLead({ userID, data }) {
     // TODO: проверять по номеру не зареган ли такой лид уже
 
@@ -89,7 +100,8 @@ async function createColdLead({ userID, data }) {
         account: _id,
         user: userID,
         funnelStep: 'cold',
-        trunk: trunk._id
+        trunk: trunk._id,
+        lastUpdate: new Date()
     }))
 
     return await newCustomer.save()
@@ -149,6 +161,7 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
     return await Customer.findOneAndUpdate({ _id: customerID, account: _id, user: userID }, {
         $set: {
             funnelStep: 'reject',
+            lastUpdate: new Date(),
             reject: {
                 reason,
                 comment,
@@ -175,6 +188,7 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
     return await Customer.findOneAndUpdate({ _id: customerID, account: _id, user: userID }, {
         $set: {
             funnelStep: 'deal',
+            lastUpdate: new Date(),
             deal: {
                 amount,
                 comment,
@@ -214,6 +228,7 @@ async function updateCustomer({ userID, customerID, body }) {
 
     const { funnelStep } = customer
     if (funnelStep === 'lead' || 'cold') body.funnelStep = 'in-progress'
+    body.lastUpdate = new Date()
 
     return await Customer.findOneAndUpdate({ _id: customerID }, { $set: body }, { new: true })
 }
@@ -324,6 +339,8 @@ async function call({ userID, customerID }) {
         json: true
     }
 
+    await updateLast({ userID, customerID })
+
     return await request(options)
 }
 
@@ -347,6 +364,8 @@ async function coldCall({ userID, customerID }) {
         json: true
     }
 
+    await updateLast({ userID, customerID })
+
     return await request(options)
 }
 
@@ -364,5 +383,6 @@ module.exports = {
     updateCustomer,
     funnel,
     coldCall,
-    stepDown
+    stepDown,
+    recents
 }
