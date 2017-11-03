@@ -7,13 +7,16 @@ const humanDate = require('../utils/humanDate')
 const { userById } = require('./users')
 const request = require('request-promise')
 
-async function updateLast({ userID, customerID }) {
+async function updateLast({ userID, customerID, lastActivity }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
     const { account: { _id, funnelSteps } } = await userById({ userID })
 
-    return await Customer.findOneAndUpdate({ _id: customerID, user: userID, account: _id }, { $set: { lastUpdate: new Date() } }, { new: true })
+    return await Customer.findOneAndUpdate(
+        { _id: customerID, user: userID, account: _id }, 
+        { $set: { lastUpdate: new Date(), lastActivity } }, 
+        { new: true })
 }
 
 
@@ -99,7 +102,8 @@ async function createColdLead({ userID, data }) {
         user: userID,
         funnelStep: 'cold',
         trunk: trunk._id,
-        lastUpdate: new Date()
+        lastUpdate: new Date(),
+        lastActivity: 'добавлен в холодные'
     }))
 
     return await newCustomer.save()
@@ -160,6 +164,7 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
         $set: {
             funnelStep: 'reject',
             lastUpdate: new Date(),
+            lastActivity: 'оформлен отказ',
             reject: {
                 reason,
                 comment,
@@ -187,6 +192,7 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
         $set: {
             funnelStep: 'deal',
             lastUpdate: new Date(),
+            lastActivity: 'сделка закрыта',
             deal: {
                 amount,
                 comment,
@@ -228,6 +234,7 @@ async function updateCustomer({ userID, customerID, body }) {
     const { funnelStep } = customer
     if (funnelStep === 'lead' || 'cold') body.funnelStep = 'in-progress'
     body.lastUpdate = new Date()
+    body.lastActivity = 'отредактирован'
 
     return await Customer.findOneAndUpdate({ _id: customerID }, { $set: body }, { new: true })
 }
@@ -274,7 +281,10 @@ async function stepDown({ userID, customerID }) {
 
     const index = funnelSteps.indexOf(customer.funnelStep)
 
-    return await Customer.findOneAndUpdate({ _id: customerID }, { $set: { funnelStep: funnelSteps[index + 1], lastUpdate: new Date() } }, { new: true })
+    return await Customer.findOneAndUpdate(
+        { _id: customerID }, 
+        { $set: { funnelStep: funnelSteps[index + 1], lastUpdate: new Date(), lastActivity: 'прогресс в воронке' } }, 
+        { new: true })
 }
 
 
@@ -338,7 +348,7 @@ async function call({ userID, customerID }) {
         json: true
     }
 
-    await updateLast({ userID, customerID })
+    await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
 
     return await request(options)
 }
@@ -365,7 +375,7 @@ async function coldCall({ userID, customerID }) {
         json: true
     }
 
-    await updateLast({ userID, customerID })
+    await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
 
     return await request(options)
 }
