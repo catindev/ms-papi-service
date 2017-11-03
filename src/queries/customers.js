@@ -236,6 +236,7 @@ async function updateCustomer({ userID, customerID, body }) {
     const { funnelStep } = customer
     if (funnelStep === 'lead' || 'cold') {
         body.funnelStep = 'in-progress'
+        body.user = userID
         body.lastActivity = 'взят в работу'
     } else {
         body.lastActivity = 'отредактирован'
