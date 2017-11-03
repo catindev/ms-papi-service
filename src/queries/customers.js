@@ -78,7 +78,8 @@ async function recents({ userID, skip = 0 }) {
 
     const options = { skip, limit: 50 }
     const customers = await Customer
-        .find({ account: _id, user: userID, funnelStep: { $nin:[ 'lead' ] } }).sort('-lastUpdate')
+        .find({ account: _id, user: userID, funnelStep: { $nin:[ 'lead' ] }, lastActivity: { $exists: true } })
+        .sort('-lastUpdate')
 
     return customers
 }
