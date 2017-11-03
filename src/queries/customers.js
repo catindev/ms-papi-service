@@ -13,10 +13,7 @@ async function updateLast({ userID, customerID }) {
 
     const { account: { _id, funnelSteps } } = await userById({ userID })
 
-    return await Customer.findOneAndUpdate(
-        { _id: customerID, user: userID, account: _id }, 
-        { $set: { lastUpdate: new Date() } },
-        { new: true }) 
+    return await Customer.findOneAndUpdate({ _id: customerID, user: userID, account: _id }, { $set: { lastUpdate: new Date() } }, { new: true })
 }
 
 
@@ -77,7 +74,8 @@ async function recents({ userID, skip = 0 }) {
     const { account: { _id } } = await userById({ userID })
 
     const options = { skip, limit: 50 }
-    const customers = await Customer.find({ account: _id, user: userID }).sort('-lastUpdate')
+    const customers = await Customer
+        .find({ account: _id, user: userID, funnelStep: { $nin:[ 'lead' ] } }).sort('-lastUpdate')
 
     return customers
 }
@@ -206,7 +204,8 @@ async function closedCustomers({ userID }) {
     const { account: { _id } } = await userById({ userID })
 
     const customers = await Customer.find({
-        account: _id, user: userID,
+        account: _id,
+        user: userID,
         $or: [{ funnelStep: 'reject' }, { funnelStep: 'deal' }]
     }).lean().exec()
 
@@ -275,10 +274,7 @@ async function stepDown({ userID, customerID }) {
 
     const index = funnelSteps.indexOf(customer.funnelStep)
 
-    return await Customer.findOneAndUpdate(
-        { _id: customerID }, 
-        { $set: { funnelStep: funnelSteps[index + 1], lastUpdate: new Date() } }, 
-        { new: true })
+    return await Customer.findOneAndUpdate({ _id: customerID }, { $set: { funnelStep: funnelSteps[index + 1], lastUpdate: new Date() } }, { new: true })
 }
 
 
