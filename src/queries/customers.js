@@ -232,10 +232,15 @@ async function updateCustomer({ userID, customerID, body }) {
     const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
     if (!customer) throw new CustomError('Клиент не найден или назначен на другого менеджера', 400)
 
+
     const { funnelStep } = customer
-    if (funnelStep === 'lead' || 'cold') body.funnelStep = 'in-progress'
+    if (funnelStep === 'lead' || 'cold') {
+        body.funnelStep = 'in-progress'
+        body.lastActivity = 'взят в работу'
+    } else {
+        body.lastActivity = 'отредактирован'
+    }
     body.lastUpdate = new Date()
-    body.lastActivity = 'отредактирован'
 
     return await Customer.findOneAndUpdate({ _id: customerID }, { $set: body }, { new: true })
 }
