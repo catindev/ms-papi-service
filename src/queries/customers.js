@@ -7,6 +7,18 @@ const humanDate = require('../utils/humanDate')
 const { userById } = require('./users')
 const request = require('request-promise')
 
+async function updateLast({ userID, customerID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof customerID === 'string') customerID = toObjectId(customerID)
+
+    const { account: { _id, funnelSteps } } = await userById({ userID })
+
+    return await Customer.findOneAndUpdate(
+        { _id: customerID, user: userID, account: _id }, 
+        { $set: { lastUpdate: new Date() } },
+        { new: true }) 
+}
+
 
 async function leads({ userID, skip = 0 }) {
     /*
@@ -91,7 +103,7 @@ async function customerById({ userID, customerID, params = false }) {
     const user = await userById({ userID })
     const { account: { _id } } = user
 
-    let customer = await Customer.findOne({ account: _id, _id: customerID })
+    let customer = await Customer.findOne({ account: _id, _id: customerID, user: userID })
         .populate('account trunk user').exec()
 
     if (!customer) throw new CustomError('Клиент не найден', 404)
@@ -128,13 +140,13 @@ async function rejectCustomer({ userID, customerID, reason, comment = '' }) {
 
     const { account: { _id } } = await userById({ userID })
 
-    const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
+    const customer = await Customer.findOne({ _id: customerID, account: _id, user: userID }).lean().exec()
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
     const { funnelStep } = customer
 
-    return await Customer.findOneAndUpdate({ _id: customerID, account: _id }, {
+    return await Customer.findOneAndUpdate({ _id: customerID, account: _id, user: userID }, {
         $set: {
             funnelStep: 'reject',
             reject: {
@@ -154,13 +166,13 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
 
     const { account: { _id } } = await userById({ userID })
 
-    const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
+    const customer = await Customer.findOne({ _id: customerID, account: _id, user: userID }).lean().exec()
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
     const { funnelStep } = customer
 
-    return await Customer.findOneAndUpdate({ _id: customerID, account: _id }, {
+    return await Customer.findOneAndUpdate({ _id: customerID, account: _id, user: userID }, {
         $set: {
             funnelStep: 'deal',
             deal: {
@@ -180,7 +192,7 @@ async function closedCustomers({ userID }) {
     const { account: { _id } } = await userById({ userID })
 
     const customers = await Customer.find({
-        account: _id,
+        account: _id, user: userID,
         $or: [{ funnelStep: 'reject' }, { funnelStep: 'deal' }]
     }).lean().exec()
 
@@ -290,7 +302,7 @@ async function call({ userID, customerID }) {
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
     const { account: { _id }, phones } = await userById({ userID })
-    const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk').exec()
+    const customer = await Customer.findOne({ _id: customerID, user: userID, account: _id }).populate('trunk').exec()
 
     if (!customer || customer === null) throw new CustomError('Клиент не найден', 404)
 
@@ -320,7 +332,7 @@ async function coldCall({ userID, customerID }) {
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
     const { account: { _id }, phones } = await userById({ userID })
-    const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk').exec()
+    const customer = await Customer.findOne({ _id: customerID, userID: userID, account: _id }).populate('trunk').exec()
 
     const options = {
         uri: 'http://185.22.65.50/cold_call.php',
