@@ -192,7 +192,7 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
         $set: {
             funnelStep: 'deal',
             lastUpdate: new Date(),
-            lastActivity: 'сделка закрыта',
+            lastActivity: 'продажа',
             deal: {
                 amount,
                 comment,
