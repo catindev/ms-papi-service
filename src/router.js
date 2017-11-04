@@ -174,6 +174,7 @@ router.get('/customers/:customerID/cold.call', (request, response, next) => {
                 who: userID, type: 'callback', what: 'холодный звонок', 
                 payload: { params, response } 
             })
+            console.log({ params, response })
             response === '{ success: true }' ?
                 response.json({ status: 200 }) :
                 response.status(500).json({ status: 500, message: 'Отмена звонка' })
