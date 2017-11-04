@@ -415,20 +415,18 @@ async function coldCall({ userID, customerID }) {
         json: true
     }
 
-    console.log('Cold call params:')
-    console.log(options.qs)
-
-    const newLog = new Log({ 
-        type: 'callback',
-        when: new Date(),
-        what: 'звонок холодному клиенту',
-        payload: options.qs
-    })
-    newLog.save()
-
     await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
 
-    return await request(options)
+    const response = await request(options)
+
+    return { 
+        params: { 
+            cn: customer.phones[0].replace('+7', '8'),
+            un: phones[0].replace('+7', '8'),
+            tr: customer.trunk.phone.replace('+7', '8')
+        },
+        response 
+    }
 }
 
 

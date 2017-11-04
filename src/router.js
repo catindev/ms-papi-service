@@ -169,13 +169,12 @@ router.get('/customers/:customerID/cold.call', (request, response, next) => {
     const { userID, params: { customerID } } = request
 
     coldCall({ userID, customerID })
-        .then(result => {
-            console.log('cold call', result)
+        .then(({ params, response }) => {
             addLog({ 
-                who: userID, type: 'callback', what: 'результат холодного звонка', 
-                payload: result 
+                who: userID, type: 'callback', what: 'холодный звонок', 
+                payload: { params, response } 
             })
-            result === '{ success: true }' ?
+            response === '{ success: true }' ?
                 response.json({ status: 200 }) :
                 response.status(500).json({ status: 500, message: 'Отмена звонка' })
         })
