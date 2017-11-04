@@ -385,6 +385,9 @@ async function coldCall({ userID, customerID }) {
         json: true
     }
 
+    console.log('Cold call params:')
+    console.log(options.qs)
+
     await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
 
     return await request(options)
