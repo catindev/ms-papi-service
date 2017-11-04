@@ -32,7 +32,7 @@ async function getLog({ }) {
     const log = await Log.find({})
 
     return log.length > 0?
-        log.map( ({ type, when, what, payload }) => ({ type, when, what, payload }))
+        log.map( ({ type, when, what, payload }) => ({ type, when: humanDate(when), what, payload }))
         :
         []
 }
