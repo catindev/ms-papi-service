@@ -28,6 +28,15 @@ async function addLog({ who, type, what, payload = {} }) {
     return await newLog.save()
 }
 
+async function getLog({ }) {
+    const log = await Log.find({})
+
+    return log.length > 0?
+        log.map( ({ type, when, what, payload }) => ({ type, when, what, payload }))
+        :
+        []
+}
+
 
 async function leads({ userID, skip = 0 }) {
     /*
@@ -438,5 +447,6 @@ module.exports = {
     coldCall,
     stepDown,
     recents,
-    addLog
+    addLog,
+    getLog
 }

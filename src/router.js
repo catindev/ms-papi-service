@@ -15,7 +15,8 @@ const {
     coldCall,
     stepDown,
     recents,
-    addLog
+    addLog,
+    getLog
 } = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
@@ -195,6 +196,12 @@ router.put('/customers/:customerID', (request, response, next) => {
 
     updateCustomer({ userID, customerID, body })
         .then(customer => response.json({ status: 200, customer }))
+        .catch(next)
+})
+
+router.get('/log', (request, response, next) => {
+    getLog({})
+        .then(items => response.json({ status: 200, items }))
         .catch(next)
 })
 
