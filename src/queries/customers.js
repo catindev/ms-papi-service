@@ -23,7 +23,7 @@ async function addLog({ who, type, what, payload = {} }) {
     if (who && typeof who === 'string') who = toObjectId(who)
 
     const newLog = new Log({ 
-        type, who, when: new Date(), what, payload: options.qs
+        type, who, when: new Date(), what, payload
     })
     return await newLog.save()
 }
