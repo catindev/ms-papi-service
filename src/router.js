@@ -151,13 +151,12 @@ router.get('/customers/:customerID/call', (request, response, next) => {
     const { userID, params: { customerID } } = request
 
     call({ userID, customerID })
-        .then(result => {
-            console.log('callback', result)
+        .then(({ params, response }) => {
             addLog({ 
-                who: userID, type: 'callback', what: 'результат исходящего звонка', 
-                payload: result 
-            })            
-            result === '{ success: true }' ?
+                who: userID, type: 'callback', what: 'исходящий звонок', 
+                payload: { params, response } 
+            })           
+            response === '{ success: true }' ?
                 response.json({ status: 200 }) :
                 response.status(500).json({ status: 500, message: 'Отмена звонка' })
         })
@@ -174,7 +173,6 @@ router.get('/customers/:customerID/cold.call', (request, response, next) => {
                 who: userID, type: 'callback', what: 'холодный звонок', 
                 payload: { params, response } 
             })
-            console.log({ params, response })
             response === '{ success: true }' ?
                 response.json({ status: 200 }) :
                 response.status(500).json({ status: 500, message: 'Отмена звонка' })
