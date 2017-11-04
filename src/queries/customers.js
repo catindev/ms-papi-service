@@ -1,5 +1,5 @@
 const toObjectId = require('mongoose').Types.ObjectId
-const { Account, Customer, Call, Trunk, Param } = require('../schema')
+const { Account, Customer, Call, Trunk, Param, Log } = require('../schema')
 const CustomError = require('../utils/error')
 const formatNumber = require('../utils/formatNumber')
 const formatNumberForHumans = require('../utils/formatNumberForHumans')
@@ -17,6 +17,15 @@ async function updateLast({ userID, customerID, lastActivity }) {
         { _id: customerID, user: userID, account: _id }, 
         { $set: { lastUpdate: new Date(), lastActivity } }, 
         { new: true })
+}
+
+async function addLog({ who, type, what, payload = {} }) {
+    if (who && typeof who === 'string') who = toObjectId(who)
+
+    const newLog = new Log({ 
+        type, who, when: new Date(), what, payload: options.qs
+    })
+    return await newLog.save()
 }
 
 
@@ -358,6 +367,18 @@ async function call({ userID, customerID }) {
         json: true
     }
 
+
+    console.log('Callback params:')
+    console.log(options.qs)
+
+    const newLog = new Log({ 
+        type: 'callback',
+        when: new Date(),
+        what: 'исходящий звонок',
+        payload: options.qs
+    })
+    newLog.save()    
+
     await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
 
     return await request(options)
@@ -388,6 +409,14 @@ async function coldCall({ userID, customerID }) {
     console.log('Cold call params:')
     console.log(options.qs)
 
+    const newLog = new Log({ 
+        type: 'callback',
+        when: new Date(),
+        what: 'звонок холодному клиенту',
+        payload: options.qs
+    })
+    newLog.save()
+
     await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
 
     return await request(options)
@@ -408,5 +437,6 @@ module.exports = {
     funnel,
     coldCall,
     stepDown,
-    recents
+    recents,
+    addLog
 }

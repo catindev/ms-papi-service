@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const { Schema } = mongoose
-const { ObjectId } = Schema.Types
+const { ObjectId, Mixed } = Schema.Types
 const formatNumber = require('./utils/formatNumber')
 const ttl = require('mongoose-ttl')
 
@@ -9,7 +9,7 @@ const Log = mongoose.model('Log', new Schema({
     who: { type: ObjectId, ref: 'Session' },
     when: { type: Date, expires: 1209600, default: Date.now() },
     what: String,
-    details: String,
+    payload: Mixed
 }))
 
 

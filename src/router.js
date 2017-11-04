@@ -14,7 +14,8 @@ const {
     funnel,
     coldCall,
     stepDown,
-    recents
+    recents,
+    addLog
 } = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
@@ -151,6 +152,10 @@ router.get('/customers/:customerID/call', (request, response, next) => {
     call({ userID, customerID })
         .then(result => {
             console.log('callback', result)
+            addLog({ 
+                who: userID, type: 'callback', what: 'результат исходящего звонка', 
+                payload: result 
+            })            
             result === '{ success: true }' ?
                 response.json({ status: 200 }) :
                 response.status(500).json({ status: 500, message: 'Отмена звонка' })
@@ -165,6 +170,10 @@ router.get('/customers/:customerID/cold.call', (request, response, next) => {
     coldCall({ userID, customerID })
         .then(result => {
             console.log('cold call', result)
+            addLog({ 
+                who: userID, type: 'callback', what: 'результат холодного звонка', 
+                payload: result 
+            })
             result === '{ success: true }' ?
                 response.json({ status: 200 }) :
                 response.status(500).json({ status: 500, message: 'Отмена звонка' })
