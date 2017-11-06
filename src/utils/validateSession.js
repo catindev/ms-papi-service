@@ -5,6 +5,7 @@ module.exports = (request, response, next) => {
     if (path === '/sessions/password' && method === 'POST') return next()
     if (path === '/sessions' && method === 'POST') return next()
     if (path === '/log' && method === 'GET') return next()
+    if (path === '/log/clean' && method === 'POST') return next()
     if (path === '/' && method === 'GET') return next()
 
     const { token } = request.query
