@@ -169,7 +169,7 @@ router.get('/customers/:customerID/call', (request, resp, next) => {
 })
 
 
-router.get('/customers/:customerID/cold.call', (request, response, next) => {
+router.get('/customers/:customerID/cold.call', (request, resp, next) => {
     const { userID, params: { customerID } } = request
 
     addLog({ 
@@ -184,8 +184,8 @@ router.get('/customers/:customerID/cold.call', (request, response, next) => {
                 payload: { params, response } 
             })
             response === '{ success: true }' ?
-                response.json({ status: 200 }) :
-                response.status(500).json({ status: 500, message: 'Отмена звонка' })
+                resp.json({ status: 200 }) :
+                resp.status(500).json({ status: 500, message: 'Отмена звонка' })
         })
         .catch(next)
 })
