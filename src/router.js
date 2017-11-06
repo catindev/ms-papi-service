@@ -150,6 +150,11 @@ router.put('/customers/:customerID/step.down', (request, response, next) => {
 router.get('/customers/:customerID/call', (request, response, next) => {
     const { userID, params: { customerID } } = request
 
+    addLog({ 
+        who: userID, type: 'callback', what: 'заппрос на коллбек', 
+        payload: `ObjectId("${customerID}")` 
+    })
+
     call({ userID, customerID })
         .then(({ params, response }) => {
             addLog({ 
@@ -166,6 +171,11 @@ router.get('/customers/:customerID/call', (request, response, next) => {
 
 router.get('/customers/:customerID/cold.call', (request, response, next) => {
     const { userID, params: { customerID } } = request
+
+    addLog({ 
+        who: userID, type: 'callback', what: 'заппрос на холодный коллбек', 
+        payload: `ObjectId("${customerID}")` 
+    })
 
     coldCall({ userID, customerID })
         .then(({ params, response }) => {
