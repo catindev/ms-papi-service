@@ -6,8 +6,8 @@ const ttl = require('mongoose-ttl')
 
 const Log = mongoose.model('Log', new Schema({
     type: String,
-    who: { type: ObjectId, ref: 'Session' },
-    when: { type: Date, expires: 1209600, default: Date.now() },
+    who: { type: ObjectId, ref: 'User' },
+    when: { type: Date, default: new Date() },
     what: String,
     payload: Mixed
 }))
