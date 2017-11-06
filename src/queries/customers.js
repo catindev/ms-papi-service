@@ -28,6 +28,10 @@ async function addLog({ who, type, what, payload = {} }) {
     return await newLog.save()
 }
 
+async function cleanLog() {
+    return await Log.remove({})
+}
+
 async function getLog({ }) {
     const log = await Log.find({})
 
@@ -443,5 +447,6 @@ module.exports = {
     stepDown,
     recents,
     addLog,
-    getLog
+    getLog,
+    cleanLog
 }

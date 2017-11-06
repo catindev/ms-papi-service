@@ -16,7 +16,8 @@ const {
     stepDown,
     recents,
     addLog,
-    getLog
+    getLog,
+    cleanLog
 } = require('./queries/customers')
 
 router.get('/', (request, response) => response.json({
@@ -210,6 +211,12 @@ router.put('/customers/:customerID', (request, response, next) => {
 router.get('/log', (request, response, next) => {
     getLog({})
         .then(items => response.json({ status: 200, items }))
+        .catch(next)
+})
+
+router.post('/log/clean', (request, response, next) => {
+    cleanLog({})
+        .then(() => response.json({ status: 200 }))
         .catch(next)
 })
 
