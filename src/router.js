@@ -151,7 +151,7 @@ router.get('/customers/:customerID/call', (request, resp, next) => {
     const { userID, params: { customerID } } = request
 
     addLog({ 
-        who: userID, type: 'callback', what: 'заппрос на коллбек', 
+        who: userID, type: 'callback', what: 'запрос на коллбек', 
         payload: `ObjectId("${customerID}")` 
     })
 
@@ -173,7 +173,7 @@ router.get('/customers/:customerID/cold.call', (request, response, next) => {
     const { userID, params: { customerID } } = request
 
     addLog({ 
-        who: userID, type: 'callback', what: 'заппрос на холодный коллбек', 
+        who: userID, type: 'callback', what: 'запрос на холодный коллбек', 
         payload: `ObjectId("${customerID}")` 
     })
 
