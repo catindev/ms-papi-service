@@ -5,6 +5,7 @@ const formatNumber = require('../utils/formatNumber')
 const formatNumberForHumans = require('../utils/formatNumberForHumans')
 const humanDate = require('../utils/humanDate')
 const { userById } = require('./users')
+const { addLog } = require('./logs')
 const request = require('request-promise')
 
 async function updateLast({ userID, customerID, lastActivity }) {
