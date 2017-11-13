@@ -19,29 +19,6 @@ async function updateLast({ userID, customerID, lastActivity }) {
         { new: true })
 }
 
-async function addLog({ who, type, what, payload = {} }) {
-    if (who && typeof who === 'string') who = toObjectId(who)
-
-    const newLog = new Log({ 
-        type, who, when: new Date(), what, payload
-    })
-    return await newLog.save()
-}
-
-async function cleanLog() {
-    return await Log.remove({})
-}
-
-async function getLog({ }) {
-    const log = await Log.find({})
-
-    return log.length > 0?
-        log.map( ({ type, when, what, payload }) => ({ type, when: humanDate(when), what, payload }))
-        :
-        []
-}
-
-
 async function leads({ userID, skip = 0 }) {
     /*
     Лиды: клиенты без менеджера или записанные за текущим менеджером.
@@ -357,10 +334,15 @@ async function call({ userID, customerID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id }, phones } = await userById({ userID })
+    const { account: { _id, name }, phones } = await userById({ userID })
     const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk').exec()
 
     if (!customer || customer === null) throw new CustomError('Клиент не найден', 404)
+
+    addLog({ 
+        who: userID, type: 'callback', what: 'запрос на коллбек', 
+        payload: { } 
+    })        
 
     // if (customer.user && !customer.user._id.equals(userID)) {
     //     // Сценарий — чужой клиент
@@ -445,8 +427,5 @@ module.exports = {
     funnel,
     coldCall,
     stepDown,
-    recents,
-    addLog,
-    getLog,
-    cleanLog
+    recents
 }

@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const { createPassword, verifyPassword } = require('./queries/sessions')
+const { addLog, getLog, cleanLog } = require('./queries/logs')
 const {
     search,
     leads,
@@ -14,11 +15,10 @@ const {
     funnel,
     coldCall,
     stepDown,
-    recents,
-    addLog,
-    getLog,
-    cleanLog
+    recents
 } = require('./queries/customers')
+
+const { addPhoneNumber, removePhoneNumber, editPhoneNumber } = require('./queries/users')
 
 router.get('/', (request, response) => response.json({
     name: 'ms-papi-service',
