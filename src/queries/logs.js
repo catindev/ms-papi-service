@@ -16,7 +16,7 @@ async function cleanLog() {
 }
 
 async function getLog({ }) {
-    const log = await Log.find({}).sort('_id')
+    const log = await Log.find({}).sort('-_id')
 
     return log.length > 0?
         log.map( ({ type, when, what, payload }) => ({ type, when: humanDate(when), what, payload }))
