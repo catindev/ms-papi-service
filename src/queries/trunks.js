@@ -1,0 +1,17 @@
+const toObjectId = require('mongoose').Types.ObjectId
+const { Account, Customer, Call, Trunk, Param, Log } = require('../schema')
+const CustomError = require('../utils/error')
+
+// TODO: дать нормальное название (узнать эффективность транков)
+async function getLeadsStats({ accountID }) {
+  if (typeof accountID === 'string') accountID = toObjectId(accountID)
+  const results = []  
+
+  const trunks = await Trunk.find({ account: accountID })
+  for (let trunk of trunks) {
+    const customers = await Customer.find({ trunk: trunk._id }).count()
+    results.push({ name: trunk.name, customers })
+  }
+
+  return results
+}

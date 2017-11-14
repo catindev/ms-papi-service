@@ -17,6 +17,7 @@ const {
     stepDown,
     recents
 } = require('./queries/customers')
+const { getLeadsStats } = require('./queries/trunks')
 
 const { addPhoneNumber, removePhoneNumber, editPhoneNumber } = require('./queries/users')
 
@@ -217,6 +218,13 @@ router.get('/log', (request, response, next) => {
 router.post('/log/clean', (request, response, next) => {
     cleanLog({})
         .then(() => response.json({ status: 200 }))
+        .catch(next)
+})
+
+router.get('/stats/leads/:accountID', (request, response, next) => {
+    const { userID, params: { accountID } } = request
+    getLeadsStats({ accountID })
+        .then(stats => response.json({ status: 200, stats }))
         .catch(next)
 })
 

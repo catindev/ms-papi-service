@@ -28,6 +28,7 @@
     "express-rate-limit": "^2.9.0",
     "memory-cache": "^0.2.0",
     "moment": "^2.19.1",
+    "moment-range": "^3.0.3",
     "mongoose": "^4.11.12",
     "mongoose-ttl": "^0.0.3",
     "raven": "^2.1.2",
