@@ -15,3 +15,5 @@ async function getLeadsStats({ accountID }) {
 
   return results
 }
+
+module.exports = { getLeadsStats }
