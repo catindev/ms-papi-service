@@ -11,7 +11,7 @@ async function getLeadsStats({ accountID }) {
   
   for (let trunk of trunks) {
     const customers = await Customer.find({ trunk: trunk._id }).count()
-    if (customers && customers.length > 0) results.push({ name: trunk.name, customers })
+    if (customers && customers > 0) results.push({ name: trunk.name, customers })
   }
 
   return results
