@@ -38,11 +38,20 @@ async function statsFunnel({ userID }) {
 
     const { account: { _id, funnelSteps } } = await userById({ userID }) 
     
-    const closed = await Customer
+    const all = await Customer
         .find({ account: _id, funnelStep: { $in: ['deal', 'reject'] } })
-        .count() 
+        .count()
 
-    return { closed }    
+    let funnel = []    
+    for(step of funnelSteps) {
+      const count = await Customer
+        .find({ account: _id, funnelStep: 'reject', reject: { previousStep: step } })
+        .count()
+
+      funnel.push({ step, count })   
+    }          
+
+    return { all, funnel }    
 }
 
 module.exports = { statsLeads, statsFunnel }
