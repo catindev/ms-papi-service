@@ -238,7 +238,7 @@ router.get('/stats/leads', (request, response, next) => {
 
 router.get('/stats/funnel', (request, response, next) => {
     const { userID } = request
-    statsLeads({ userID })
+    statsFunnel({ userID })
         .then(stats => response.json(Object.assign({ status: 200 }, stats)))
         .catch(next)
 })
