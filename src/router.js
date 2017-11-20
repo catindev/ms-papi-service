@@ -18,7 +18,7 @@ const {
     recents
 } = require('./queries/customers')
 const { getLeadsStats } = require('./queries/trunks')
-const { statsLeads, statsFunnel } = require('./queries/stats')
+const { statsLeads, statsClosed, statsInProgress } = require('./queries/stats')
 
 const { addPhoneNumber, removePhoneNumber, editPhoneNumber } = require('./queries/users')
 
@@ -236,9 +236,16 @@ router.get('/stats/leads', (request, response, next) => {
         .catch(next)
 })
 
-router.get('/stats/funnel', (request, response, next) => {
+router.get('/stats/closed', (request, response, next) => {
     const { userID } = request
-    statsFunnel({ userID })
+    statsClosed({ userID })
+        .then(stats => response.json(Object.assign({ status: 200 }, stats)))
+        .catch(next)
+})
+
+router.get('/stats/in-progress', (request, response, next) => {
+    const { userID } = request
+    statsInProgress({ userID })
         .then(stats => response.json(Object.assign({ status: 200 }, stats)))
         .catch(next)
 })

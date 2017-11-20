@@ -33,7 +33,7 @@ async function statsLeads({ userID }) {
     return { missed, managers }
 }
 
-async function statsFunnel({ userID }) {
+async function statsClosed({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id, funnelSteps } } = await userById({ userID }) 
@@ -41,7 +41,6 @@ async function statsFunnel({ userID }) {
     const all = await Customer
         .find({ account: _id, funnelStep: { $in: ['deal', 'reject'] } })
         .count()
-
 
 
     let funnel = [], counter = 0   
@@ -64,4 +63,35 @@ async function statsFunnel({ userID }) {
     return { all, funnel: funnel.reverse() }    
 }
 
-module.exports = { statsLeads, statsFunnel }
+
+async function statsInProgress({ userID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id, funnelSteps } } = await userById({ userID }) 
+
+    const all = await Customer
+        .find({ 
+          account: _id, 
+          funnelStep: { $nin: ['lead', 'cold', 'deal', 'reject'] } 
+        })
+        .count()
+
+
+    let funnel = []  
+    const inProgress = await Customer
+      .find({ account: _id, funnelStep: 'in-progress' })
+      .count()
+    funnel.push({ step: 'В работе', count: inProgress })     
+
+    for(step of funnelSteps) {
+      const count = await Customer
+        .find({ account: _id, funnelStep: step })
+        .count()
+
+      funnel.push({ step, count: count })  
+    }               
+
+    return { all, funnel }    
+}
+
+module.exports = { statsLeads, statsClosed, statsInProgress }
