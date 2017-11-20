@@ -45,7 +45,7 @@ async function statsFunnel({ userID }) {
     let funnel = []    
     for(step of funnelSteps) {
       const count = await Customer
-        .find({ account: _id, funnelStep: 'reject', reject: { previousStep: step } })
+        .find({ account: _id, funnelStep: 'reject', 'reject.previousStep': step })
         .count()
 
       funnel.push({ step, count })   
