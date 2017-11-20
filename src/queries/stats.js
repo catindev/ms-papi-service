@@ -37,18 +37,23 @@ async function statsFunnel({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id, funnelSteps } } = await userById({ userID }) 
-    
+
     const all = await Customer
         .find({ account: _id, funnelStep: { $in: ['deal', 'reject'] } })
         .count()
 
-    let funnel = []    
-    for(step of funnelSteps) {
+
+
+    let funnel = [], counter = 0   
+    const backFunnel = funnelSteps.reverse()
+    
+    for(step of backFunnel) {
       const count = await Customer
         .find({ account: _id, funnelStep: 'reject', 'reject.previousStep': step })
         .count()
 
-      funnel.push({ step, count })   
+      funnel.push({ step, count })  
+      counter += count
     }          
 
     return { all, funnel }    
