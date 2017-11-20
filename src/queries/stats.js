@@ -9,7 +9,7 @@ async function statsLeads({ userID, skip = 0 }) {
 
     const { account: { _id } } = await userById({ userID })
 
-    const all = await Customer
+    const missed = await Customer
         .find({ account: _id, user: { $exists: false }, funnelStep: 'lead' })
         .count()
 
@@ -25,7 +25,7 @@ async function statsLeads({ userID, skip = 0 }) {
       return result  
     }, [])    
 
-    return { all, managers }
+    return { missed, managers }
 }
 
 module.exports = { statsLeads }
