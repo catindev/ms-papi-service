@@ -4,7 +4,9 @@ const CustomError = require('../utils/error')
 const { userById } = require('./users')
 const { findIndex } = require('lodash')
 
-async function statsLeads({ userID, skip = 0 }) {
+// TODO: проверять на босса
+
+async function statsLeads({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id } } = await userById({ userID })
@@ -18,17 +20,29 @@ async function statsLeads({ userID, skip = 0 }) {
         .populate('user')
         .exec()
 
-    const managers = withManagers.reduce((result, currentLead, i, all) => {
+    const managers = withManagers.reduce((stats, currentLead) => {
       const { user: { name } } = currentLead
-      const index = findIndex(result, { manager: name })
+      const index = findIndex(stats, { manager: name })
       
-      if (index !== -1) result[index].count += 1 
-      else result.push({ manager: name, count: 1 })  
+      if (index !== -1) stats[index].count++ 
+      else stats.push({ manager: name, count: 1 })  
 
-      return result  
+      return stats  
     }, [])    
 
     return { missed, managers }
 }
 
-module.exports = { statsLeads }
+async function statsFunnel({ userID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id, funnelSteps } } = await userById({ userID }) 
+    
+    const closed = await Customer
+        .find({ account: _id, funnelStep: { $in: ['deal', 'reject'] } })
+        .count() 
+
+    return { closed }    
+}
+
+module.exports = { statsLeads, statsFunnel }
