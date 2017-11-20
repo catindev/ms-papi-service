@@ -46,17 +46,17 @@ async function statsFunnel({ userID }) {
 
     let funnel = [], counter = 0   
     const backFunnel = funnelSteps.reverse()
-    
+
     for(step of backFunnel) {
       const count = await Customer
         .find({ account: _id, funnelStep: 'reject', 'reject.previousStep': step })
         .count()
 
-      funnel.push({ step, count })  
+      funnel.push({ step, count: count + counter })  
       counter += count
     }          
 
-    return { all, funnel }    
+    return { all, funnel: funnel.reverse() }    
 }
 
 module.exports = { statsLeads, statsFunnel }
