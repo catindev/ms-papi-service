@@ -13,15 +13,18 @@ async function statsLeads({ userID, skip = 0 }) {
         .find({ account: _id, user: { $exists: false }, funnelStep: 'lead' })
         .count()
 
-    const leadsWithManagers = await Customer
+    const withManagers = await Customer
         .find({ account: _id, user: { $exists: true }, funnelStep: 'lead' })
         .populate('user')
         .exec()
 
-    const managers = leadsWithManagers.reduce((result, currentLead, i, all) => {
-      const index = findIndex(result, { manager: currentLead.user.name })
-      if (index !== -1) result[index].count ++
-      else result.push({ manager: currentLead.user.name, count: 1 })  
+    const managers = withManagers.reduce((result, currentLead, i, all) => {
+      const { user: { name } } = currentLead
+      const index = findIndex(result, { manager: name })
+      
+      if (index !== -1) result[index].count += 1 
+      else result.push({ manager: name, count: 1 })  
+
       return result  
     }, [])    
 
