@@ -18,6 +18,7 @@ const {
     recents
 } = require('./queries/customers')
 const { getLeadsStats } = require('./queries/trunks')
+const { statsLeads } = require('./queries/stats')
 
 const { addPhoneNumber, removePhoneNumber, editPhoneNumber } = require('./queries/users')
 
@@ -221,10 +222,17 @@ router.post('/log/clean', (request, response, next) => {
         .catch(next)
 })
 
-router.get('/stats/leads/:accountID', (request, response, next) => {
-    const { userID, params: { accountID } } = request
-    getLeadsStats({ accountID })
-        .then(stats => response.json({ status: 200, stats }))
+// router.get('/stats/leads/:accountID', (request, response, next) => {
+//     const { userID, params: { accountID } } = request
+//     getLeadsStats({ accountID })
+//         .then(stats => response.json({ status: 200, stats }))
+//         .catch(next)
+// })
+
+router.get('/stats/leads', (request, response, next) => {
+    const { userID } = request
+    statsLeads({ userID })
+        .then(stats => response.json(Object.assign({ status: 200 }, stats)))
         .catch(next)
 })
 
