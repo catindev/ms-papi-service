@@ -77,7 +77,8 @@ async function statsInProgress({ userID }) {
         .count()
 
 
-    let funnel = []  
+    let funnel = [] 
+     
     const inProgress = await Customer
       .find({ account: _id, funnelStep: 'in-progress' })
       .count()
