@@ -60,15 +60,6 @@ async function statsClosed({ userID }) {
       counter += count
     }               
 
-    const badLeads = await Customer
-      .find({ 
-        account: _id, 
-        funnelStep: 'reject', 
-        'reject.previousStep': { $in: ['lead', 'cold'] } 
-      })
-      .count()
-    funnel.push({ step: 'Звонки', count: badLeads })  
-
     return { all, funnel: funnel.reverse() }    
 }
 
