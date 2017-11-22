@@ -250,6 +250,20 @@ router.get('/stats/in-progress', (request, response, next) => {
         .catch(next)
 })
 
+router.get('/mlog', (request, response, next) => {
+    var fs = require('fs');
+    fs.readFile('/var/log/mongodb/mongod.log', {encoding: 'utf-8'}, function(err,data){
+        if (!err) {
+            console.log('received data: ' + data);
+            response.writeHead(200, {'Content-Type': 'text/html'});
+            response.write(data);
+            response.end();
+        } else {
+            console.log(err);
+        }
+    })
+})
+
 router.all('*', (request, response) => response.status(404).json({
     status: 404,
     message: 'Здесь ничего нет'
