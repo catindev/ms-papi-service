@@ -255,7 +255,7 @@ router.get('/mlog', (request, response, next) => {
     fs.readFile('/var/log/mongodb/mongod.log', {encoding: 'utf-8'}, function(err,data){
         if (!err) {
             console.log('received data: ' + data);
-            response.writeHead(200, {'Content-Type': 'text/html'});
+            response.writeHead(200, {'Content-Type': 'text/plain'});
             response.write(data);
             response.end();
         } else {
