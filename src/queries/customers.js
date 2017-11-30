@@ -356,7 +356,7 @@ async function call({ userID, customerID }) {
         qs: {
             cn: customer.phones[0].replace('+7', '8'),
             un: phones[0].replace('+7', '8'),
-            tr: name === 'Calibry' ? '87470941618' : customer.trunk.phone.replace('+7', '8'),
+            tr: name === 'Calibry' ? '87780218789' : customer.trunk.phone.replace('+7', '8'),
             call_id: 'ms3'
         },
         headers: { 'User-Agent': 'Request-Promise' },
