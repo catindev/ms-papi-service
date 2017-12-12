@@ -18,7 +18,7 @@ const {
     recents
 } = require('./queries/customers')
 const { getLeadsStats } = require('./queries/trunks')
-const { statsLeads, statsClosed, statsInProgress } = require('./queries/stats')
+const { statsLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks } = require('./queries/stats')
 
 const { addPhoneNumber, removePhoneNumber, editPhoneNumber } = require('./queries/users')
 
@@ -237,8 +237,8 @@ router.get('/stats/leads', (request, response, next) => {
 })
 
 router.get('/stats/closed', (request, response, next) => {
-    const { userID } = request
-    statsClosed({ userID })
+    const { userID, query: { start, end } } = request
+    statsClosed({ userID, start, end })
         .then(stats => response.json(Object.assign({ status: 200 }, stats)))
         .catch(next)
 })
@@ -249,6 +249,27 @@ router.get('/stats/in-progress', (request, response, next) => {
         .then(stats => response.json(Object.assign({ status: 200 }, stats)))
         .catch(next)
 })
+
+router.get('/stats/portrait', (request, response, next) => {
+    const { userID, query: { start, end } } = request
+    customerPortrait({ userID, start, end  })
+        .then(portrait => response.json({ status: 200, portrait }))
+        .catch(next)
+})
+
+router.get('/stats/trunks', (request, response, next) => {
+    const { userID, query: { start, end } } = request
+    statsLeadsFromTrunks({ userID, start, end })
+        .then(stats => response.json({ status: 200, stats }))
+        .catch(next)
+})
+
+// router.get('/stats/calls-range', (request, response, next) => {
+//     const { userID, query: { start, end } } = request
+//     incomingCallsStats({ userID, start, end })
+//         .then(stats => response.json({ status: 200, stats }))
+//         .catch(next)
+// })
 
 router.get('/mlog', (request, response, next) => {
     var fs = require('fs');

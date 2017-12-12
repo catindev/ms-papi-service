@@ -11,4 +11,11 @@ async function userById({ userID }) {
         .exec()
 }
 
+async function updateUser({ userID, data }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if ('phones' in data) data.phones = data.phones.map(formatNumber)
+
+    return User.update({ _id: userID }, data)
+}
+
 module.exports = { userById }
