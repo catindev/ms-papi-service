@@ -5,10 +5,13 @@ mongoose.Promise = Promise
 
 mongoose.connection.openUri('mongodb://ms3usr:mp7u@ds117876-a0.mlab.com:17876,ds117876-a1.mlab.com:17876/ms3?replicaSet=rs-ds117876')
   .once('open', () => {
-    const { incomingCallsStats } = require('./queries/stats')
+    const { hack } = require('./queries/stats')
 
-incomingCallsStats({ userID: '59f965a594d14316e76321ec', start: '2017-12-01', end: '2017-12-12', interval: 'days' })
-        .then(data => console.log(data))
+    hack()
+        .then(data => {
+          console.log(data)
+          mongoose.connection.close()
+        })
         .catch(console.log)
 
   })

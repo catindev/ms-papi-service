@@ -6,18 +6,30 @@ const { findIndex, isArray } = require('lodash')
 
 // TODO: проверять на босса
 
-async function statsLeads({ userID }) {
+async function fuckedLeads({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
-
-    const { account: { _id } } = await userById({ userID })
-
-    const all = await Customer
-        .find({ account: _id })
-        .count()
-
+    const { account: { _id } } = await userById({ userID }) 
+    
     const missed = await Customer
         .find({ account: _id, user: { $exists: false }, funnelStep: 'lead' })
-        .count()
+
+    let overMissed = 0, halfMissed = 0
+    for (customer of missed) {
+      const badcalls = await Call.find({ customer: customer._id, record: { $exists: false }, isCallback: false }).count()
+      const badrecalls = await Call.find({ customer: customer._id, record: { $exists: false }, isCallback: true }).count()
+      
+      if (badcalls > 0 && badrecalls === 0) overMissed++
+      if (badcalls > 0 && badrecalls > 0) halfMissed++
+    } 
+
+    return { missed: missed.length, halfMissed, overMissed }  
+
+}
+
+
+async function managersLeads({ userID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    const { account: { _id } } = await userById({ userID })
 
     const withManagers = await Customer
         .find({ account: _id, user: { $exists: true }, funnelStep: 'lead' })
@@ -34,7 +46,7 @@ async function statsLeads({ userID }) {
         return stats
     }, [])
 
-    return { all, missed, managers }
+    return managers
 }
 
 async function statsClosed({ userID, start, end }) {
@@ -233,10 +245,10 @@ async function statsLeadsFromTrunks({ userID, start, end }) {
 // }
 
 module.exports = { 
-  statsLeads, 
+  managersLeads, 
   statsClosed, 
   statsInProgress, 
   customerPortrait, 
   statsLeadsFromTrunks,
-  // incomingCallsStats
+  fuckedLeads
 }

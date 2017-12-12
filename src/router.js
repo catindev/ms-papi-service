@@ -18,7 +18,7 @@ const {
     recents
 } = require('./queries/customers')
 const { getLeadsStats } = require('./queries/trunks')
-const { statsLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks } = require('./queries/stats')
+const { managersLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks, fuckedLeads } = require('./queries/stats')
 
 const { addPhoneNumber, removePhoneNumber, editPhoneNumber } = require('./queries/users')
 
@@ -231,8 +231,8 @@ router.post('/log/clean', (request, response, next) => {
 
 router.get('/stats/leads', (request, response, next) => {
     const { userID } = request
-    statsLeads({ userID })
-        .then(stats => response.json(Object.assign({ status: 200 }, stats)))
+    managersLeads({ userID })
+        .then(stats => response.json({ status: 200, stats }))
         .catch(next)
 })
 
@@ -264,12 +264,12 @@ router.get('/stats/trunks', (request, response, next) => {
         .catch(next)
 })
 
-// router.get('/stats/calls-range', (request, response, next) => {
-//     const { userID, query: { start, end } } = request
-//     incomingCallsStats({ userID, start, end })
-//         .then(stats => response.json({ status: 200, stats }))
-//         .catch(next)
-// })
+router.get('/stats/leads/fucked', (request, response, next) => {
+    const { userID, query: { start, end } } = request
+    fuckedLeads({ userID })
+        .then(stats => response.json(Object.assign({ status: 200 }, stats)))
+        .catch(next)
+})
 
 router.get('/mlog', (request, response, next) => {
     var fs = require('fs');
