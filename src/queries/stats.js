@@ -170,7 +170,7 @@ async function customerPortrait({ userID, start, end }) {
             const count = search ? search.length : 0
             const percents = count > 0 ? roundp(count, all.length) : 0
 
-            values.push({ name: item, count, percents })
+            if (percents !== 0) values.push({ name: item, count, stats })
         }
 
 
