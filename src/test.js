@@ -1,3 +1,4 @@
+const toObjectId = require('mongoose').Types.ObjectId
 const mongoose = require('mongoose')
 const { log, warn } = console
 
@@ -5,12 +6,13 @@ mongoose.Promise = Promise
 
 mongoose.connection.openUri('mongodb://ms3usr:mp7u@ds117876-a0.mlab.com:17876,ds117876-a1.mlab.com:17876/ms3?replicaSet=rs-ds117876')
   .once('open', () => {
-    const { hack } = require('./queries/stats')
+    const { findOneSession, getTokenOwner } = require('./queries/sessions')
 
-    hack()
+    findOneSession({ account: '59f840fc94d14316e76321b4' })
         .then(data => {
           console.log(data)
           mongoose.connection.close()
+          process.exit()
         })
         .catch(console.log)
 

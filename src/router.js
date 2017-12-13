@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const { createPassword, verifyPassword } = require('./queries/sessions')
+const { createPassword, verifyPassword, findOneSession } = require('./queries/sessions')
 const { addLog, getLog, cleanLog } = require('./queries/logs')
 const {
     search,
@@ -27,7 +27,6 @@ router.get('/', (request, response) => response.json({
     version: 1
 }))
 
-
 router.post('/sessions/password', (request, response, next) => {
     const { phone } = request.body
 
@@ -38,6 +37,16 @@ router.post('/sessions/password', (request, response, next) => {
 
     createPassword({ phone })
         .then(send => response.status(200).json({ status: 200, send }))
+        .catch(next)
+})
+
+router.get('/sessions/find.one', (request, response, next) => {
+    const { query: { account } } = request
+    findOneSession({ account })
+        .then(token => {
+            console.log(token)
+            response.json({ status: 200, token })
+        })
         .catch(next)
 })
 

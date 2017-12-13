@@ -45,6 +45,7 @@ const User = mongoose.model('User', new Schema({
 
 
 const Session = mongoose.model('Session', new Schema({
+    account: { type: ObjectId, ref: 'Account' },
     user: { type: ObjectId, ref: 'User' },
     token: String,
     created: { type: Date, default: Date.now() }
