@@ -54,7 +54,7 @@ async function statsClosed({ userID, start, end }) {
 
     const { account: { _id, funnelSteps } } = await userById({ userID })
 
-    const allCustomersQuery = { account: _id, funnelStep: { $in: ['deal', 'reject'] } }
+    const allCustomersQuery = { account: _id, funnelStep: 'reject', 'reject.previousStep': 'in-progress' }
     if (start || end) {
       allCustomersQuery.created = {}
       if (start) allCustomersQuery.created.$gte = start
@@ -67,7 +67,7 @@ async function statsClosed({ userID, start, end }) {
         counter = 0
     const backFunnel = funnelSteps.reverse()
 
-    const dealsQuery = { account: _id, funnelStep: 'deal' }
+    const dealsQuery = { account: _id, funnelStep: 'deal', 'deal.date': { $gte: '2017-11-01' } }
     if (allCustomersQuery.created) dealsQuery.created = allCustomersQuery.created
 
     const deals = await Customer.find(dealsQuery).count()
