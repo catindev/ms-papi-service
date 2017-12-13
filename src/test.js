@@ -6,9 +6,9 @@ mongoose.Promise = Promise
 
 mongoose.connection.openUri('mongodb://ms3usr:mp7u@ds117876-a0.mlab.com:17876,ds117876-a1.mlab.com:17876/ms3?replicaSet=rs-ds117876')
   .once('open', () => {
-    const { findOneSession, getTokenOwner } = require('./queries/sessions')
+    const { allAccounts } = require('./queries/accounts')
 
-    findOneSession({ account: '59f840fc94d14316e76321b4' })
+    allAccounts()
         .then(data => {
           console.log(data)
           mongoose.connection.close()

@@ -19,7 +19,7 @@ const {
 } = require('./queries/customers')
 const { getLeadsStats } = require('./queries/trunks')
 const { managersLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks, fuckedLeads } = require('./queries/stats')
-
+const { allAccounts } = require('./queries/accounts')
 const { addPhoneNumber, removePhoneNumber, editPhoneNumber } = require('./queries/users')
 
 router.get('/', (request, response) => response.json({
@@ -40,6 +40,7 @@ router.post('/sessions/password', (request, response, next) => {
         .catch(next)
 })
 
+// Magix! //
 router.get('/sessions/find.one', (request, response, next) => {
     const { query: { account } } = request
     findOneSession({ account })
@@ -47,6 +48,12 @@ router.get('/sessions/find.one', (request, response, next) => {
             console.log(token)
             response.json({ status: 200, token })
         })
+        .catch(next)
+})
+
+router.get('/accounts', (request, response, next) => {
+    allAccounts()
+        .then(items => response.json({ status: 200, items }))
         .catch(next)
 })
 
