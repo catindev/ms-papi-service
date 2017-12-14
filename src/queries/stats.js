@@ -23,7 +23,6 @@ async function fuckedLeads({ userID }) {
     } 
 
     return { missed: missed.length, halfMissed, overMissed }  
-
 }
 
 
@@ -133,7 +132,7 @@ async function customerPortrait({ userID, start, end }) {
     const { account: { _id } } = await userById({ userID })
     const stats = []
 
-    const params = await Param.find({ account: _id, type: { $in: ['select'] } })
+    const params = await Param.find({ account: _id, type: { $in: ['select', 'multiselect'] } })
 
     if (!params || params.length === 0) return []
 
@@ -151,7 +150,7 @@ async function customerPortrait({ userID, start, end }) {
     const allCustomers = await Customer.find(allCustomersQuery)
 
     for (param of params) {
-        const { id, name, items } = param
+        const { id, name, items, type } = param
 
         const query = {
             account: _id,
@@ -159,14 +158,15 @@ async function customerPortrait({ userID, start, end }) {
         }
         query[id] = { $exists: true, $ne: "", $not: { $size: 0 } }
         if (allCustomersQuery.created) query.created = allCustomersQuery.created
-        const all = await Customer.find(query)
+        const all = await Customer.find(query).lean().exec()
 
         const values = []
         for (item of items) {
-            const search = all.filter(customer => {
-                const clone = customer.toObject()
-                return clone[id] === item
-            })
+            const search = type === 'select'?
+              all.filter(customer => customer[id] === item)
+              :
+              all.filter(customer => customer[id].indexOf(item) !== -1)
+
             const count = search ? search.length : 0
             const percents = count > 0 ? roundp(count, all.length) : 0
 
