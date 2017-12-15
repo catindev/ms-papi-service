@@ -59,11 +59,9 @@ async function statsClosed({ userID, start, end }) {
       if (start) allCustomersQuery.created.$gte = start
       if (end) allCustomersQuery.created.$lt = end 
     }  
-    const all = await Customer.find(allCustomersQuery).count()
 
 
-    let funnel = [],
-        counter = 0
+    let funnel = [], counter = 0
     const backFunnel = funnelSteps.reverse()
 
     const dealsQuery = { account: _id, funnelStep: 'deal', 'deal.date': { $gte: '2017-11-01' } }
@@ -71,6 +69,7 @@ async function statsClosed({ userID, start, end }) {
 
     const deals = await Customer.find(dealsQuery).count()
     funnel.push({ step: 'Сделка', count: deals })
+    counter = deals
 
     for (step of backFunnel) {
         const stepQuery = { account: _id, funnelStep: 'reject', 'reject.previousStep': step }
@@ -81,7 +80,10 @@ async function statsClosed({ userID, start, end }) {
         counter += count
     }
 
-    return { all, funnel: funnel.reverse() }
+    const fromCalls = await Customer.find(allCustomersQuery).count()
+    funnel.push({ step: 'Звонки', count: fromCalls + counter })
+
+    return { funnel: funnel.reverse() }
 }
 
 

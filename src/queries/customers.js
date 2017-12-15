@@ -39,16 +39,18 @@ async function leads({ userID, skip = 0 }) {
         account: _id,
         funnelStep: 'lead',
         '$or': [{ user: { $exists: false } }, { user: userID }],
-    })
+    }).lean().exec()
 
     if (customers.length === 0) return customers
 
     const result = []
 
     for (let customer of customers) {
-        const call = await Call.findOne({ customer: customer._id }).sort('-_id')
-        const state = !call || !call.record ? 'WAIT_RECALL' : 'WAIT_PROFILE'
-        result.push(Object.assign({}, customer.toObject(), { state }))
+        // TODO: проверить
+        // const call = await Call.findOne({ customer: customer._id }).sort('-_id')
+        // const state = !call || !call.record ? 'WAIT_RECALL' : 'WAIT_PROFILE'
+        const state = !customer.user ? 'WAIT_RECALL' : 'WAIT_PROFILE'
+        result.push(Object.assign({}, customer, { state }))
     }
 
     return result
