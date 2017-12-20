@@ -7,6 +7,7 @@ const humanDate = require('../utils/humanDate')
 const { userById } = require('./users')
 const { addLog } = require('./logs')
 const request = require('request-promise')
+const md5 = require('../utils/md5')
 
 async function updateLast({ userID, customerID, lastActivity }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -267,6 +268,7 @@ async function funnel({ userID }) {
     return funnelSteps.reduce((result, step) => {
         result.push({
             name: step,
+            id: md5(step),
             customers: customers
                 .filter(customer => customer.funnelStep === step)
         })
