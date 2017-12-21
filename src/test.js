@@ -1,49 +1,12 @@
-const toObjectId = require('mongoose').Types.ObjectId
-const mongoose = require('mongoose')
-const { log, warn } = console
+const f = require('./utils/formatNumber.old')
+const fh = require('./utils/formatNumberForHumans')
 
-mongoose.Promise = Promise
-
-mongoose.connection.openUri('mongodb://ms3usr:mp7u@ds117876-a0.mlab.com:17876,ds117876-a1.mlab.com:17876/ms3?replicaSet=rs-ds117876')
-  .once('open', () => {
-    const { allAccounts } = require('./queries/accounts')
-
-    allAccounts()
-        .then(data => {
-          console.log(data)
-          mongoose.connection.close()
-          process.exit()
-        })
-        .catch(console.log)
-
-  })
-  .on('error', error => warn('Warning', error))
-
-
-
-// const Moment = require('moment')
-// const MomentRange = require('moment-range')
-// const moment = MomentRange.extendMoment(Moment)
-// moment.locale('ru')
-
-// function formatInterval(date, type, index) {
-//   if (type === 'weeks') return (index + 1) + ' неделя'
-//   if (type === 'months') return date.format('MMMM')
-//   return date.format('DD MMM')  
-// }
-
-// const rangeItemToMongoQuery = (date, type, index) => ({
-//   name: formatInterval(date, type, index),
-//   date: {
-//     $gte: date.startOf( type ).toDate(),
-//     $lt: date.endOf( type ).toDate()
-//   }
-// })
-
-// const Type = 'months'
-
-// const period = moment.range(new Date('2017-11-01').toISOString(), new Date('2017-12-12').toISOString())
-// const RANGE = Array.from(period.by(Type, { step: 1 }))
-
-// RANGE.forEach( (item, index) => console.log(rangeItemToMongoQuery(item, Type, index)))
-
+console.log(fh(f('801')))
+console.log(fh(f('921231')))
+console.log(fh(f('7011234567')))
+console.log(fh(f('+77016662222')))
+console.log(fh(f('+7 (701) 333 44 22')))
+console.log(fh(f('+7 (701) 444-33-11')))
+console.log(fh(f('8 (701) 555-66-77')))
+console.log(fh(f('+7 (7212) 555-667')))
+console.log(fh(f('7212555667')))

@@ -9,12 +9,13 @@ function errorFor(phone) {
 module.exports = function formatNumber( phone, strict = true ) {
     const error = errorFor(phone);
 
-    if ( !phone ) return strict ? error('введите номер') : false
+    if ( !phone ) return strict ? error('Введите номер') : false
 
-    const formatted = (phone.replace(/ /g,'')).replace(/\D/g,'')
+    let formatted = (phone.replace(/ /g,'')).replace(/\D/g,'')
 
-    return formatted[0] === '8'?
-        formatted.replace('8','7')
-        :
-        formatted   
+    if (formatted.length === 10) formatted = '8' + formatted
+
+    if (formatted.length === 11 && formatted[0] === '7') formatted = formatted.replace('7','8')
+ 
+    return formatted  
 }
