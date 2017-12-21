@@ -254,6 +254,11 @@ async function updateCustomer({ userID, customerID, body }) {
 
 
 async function funnel({ userID }) {
+    function getId(name) {
+        const hash = md5(name)
+        return hash.replace(/[0-9]/g, '') + hash.replace(/\D/g,'')
+    }
+
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id, funnelSteps } } = await userById({ userID })
@@ -268,7 +273,7 @@ async function funnel({ userID }) {
     return funnelSteps.reduce((result, step) => {
         result.push({
             name: step,
-            id: md5(step),
+            id: getId(step),
             customers: customers
                 .filter(customer => customer.funnelStep === step)
         })
