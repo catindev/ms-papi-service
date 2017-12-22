@@ -13,14 +13,18 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const app = express()
 
-// const RateLimit = require('express-rate-limit')
-// const limiter = new RateLimit({
-//   windowMs: 10*60*1000,
-//   max: 5000,
-//   delayMs: 1000
-// })
+const RateLimit = require('express-rate-limit')
+const limiter = new RateLimit({
+  windowMs: 1000*60*1000,
+  max: 5000,
+  delayMs: 0
+})
 
 const rateLimiter = require('express-rate-limit-middleware').rateLimit
+app.use(rateLimiter.setLimit({
+  limit: 1000, 
+  reset: '1 second'
+}))
 
 app.use(cookieParser())
 app.use(bodyParser.json())
@@ -30,11 +34,7 @@ app.use(cors({
   "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
   "preflightContinue": false,
 }))
-// app.use(limiter)
-app.use(rateLimiter.setLimit({
-  limit: 1000, 
-  reset: '1 second'
-}))
+app.use(limiter)
 
 app.use(require('./utils/validateSession'))
 app.use(require('./router'))
