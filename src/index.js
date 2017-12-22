@@ -20,11 +20,6 @@ const limiter = new RateLimit({
   delayMs: 0
 })
 
-app.use(rateLimiter.setLimit({
-  limit: 1000, 
-  reset: '1 second'
-}))
-
 app.use(cookieParser())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
