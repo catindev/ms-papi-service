@@ -20,7 +20,6 @@ const limiter = new RateLimit({
   delayMs: 0
 })
 
-const rateLimiter = require('express-rate-limit-middleware').rateLimit
 app.use(rateLimiter.setLimit({
   limit: 1000, 
   reset: '1 second'
