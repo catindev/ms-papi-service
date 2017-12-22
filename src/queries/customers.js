@@ -172,7 +172,7 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
     if (name) reject.name = name
 
     return await Customer.findOneAndUpdate(
-        { _id: customerID, account: _id, user: userID }, 
+        { _id: customerID, account: _id }, 
         { $set: {
             funnelStep: 'reject',
             lastUpdate: new Date(),
