@@ -162,7 +162,7 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
-    const { funnelStep } = customer
+    const { funnelStep, user } = customer
     const reject = {
         reason,
         comment,
@@ -177,7 +177,8 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
             funnelStep: 'reject',
             lastUpdate: new Date(),
             lastActivity: 'оформлен отказ',
-            reject
+            reject,
+            user: user? user : userID
         }
     }, { new: true })
 }
