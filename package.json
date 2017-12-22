@@ -26,6 +26,7 @@
     "ejs": "^2.5.7",
     "express": "^4.15.4",
     "express-rate-limit": "^2.9.0",
+    "express-rate-limit-middleware": "^1.0.4",
     "lodash": "^4.17.4",
     "memory-cache": "^0.2.0",
     "moment": "^2.19.4",
