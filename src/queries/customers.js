@@ -158,7 +158,7 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
 
     const { account: { _id } } = await userById({ userID })
 
-    const customer = await Customer.findOne({ _id: customerID, account: _id, user: userID }).lean().exec()
+    const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
