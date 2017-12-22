@@ -15,7 +15,7 @@ const app = express()
 
 const RateLimit = require('express-rate-limit')
 const limiter = new RateLimit({
-  windowMs: 5*60*1000,
+  windowMs: 10*60*1000,
   max: 5000,
   delayMs: 1000
 })
