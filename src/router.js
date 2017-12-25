@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const { createPassword, verifyPassword, findOneSession } = require('./queries/sessions')
+const { createPassword, verifyPassword, findOneSession, SignOut } = require('./queries/sessions')
 const { addLog, getLog, cleanLog } = require('./queries/logs')
 const {
     search,
@@ -18,9 +18,10 @@ const {
     recents
 } = require('./queries/customers')
 const { getLeadsStats } = require('./queries/trunks')
-const { managersLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks, fuckedLeads } = require('./queries/stats')
+const { managersLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks, fuckedLeads, incomingCallsStats } = require('./queries/stats')
 const { allAccounts } = require('./queries/accounts')
 const { addPhoneNumber, removePhoneNumber, editPhoneNumber } = require('./queries/users')
+const { recentCalls } = require('./queries/calls')
 
 router.get('/', (request, response) => response.json({
     name: 'ms-papi-service',
@@ -98,6 +99,14 @@ router.get('/customers/recents', (request, response, next) => {
     const { userID } = request
 
     recents({ userID })
+        .then(items => response.json({ status: 200, items }))
+        .catch(next)
+})
+
+router.get('/recent.calls', (request, response, next) => {
+    const { userID } = request
+
+    recentCalls({ userID })
         .then(items => response.json({ status: 200, items }))
         .catch(next)
 })
@@ -238,12 +247,12 @@ router.post('/log/clean', (request, response, next) => {
         .catch(next)
 })
 
-// router.get('/stats/leads/:accountID', (request, response, next) => {
-//     const { userID, params: { accountID } } = request
-//     getLeadsStats({ accountID })
-//         .then(stats => response.json({ status: 200, stats }))
-//         .catch(next)
-// })
+router.get('/stats/test', (request, response, next) => {
+   const { userID, query: { start, end, interval } } = request
+    incomingCallsStats({ userID, start, end, interval })
+        .then(stats => response.json({ status: 200, stats }))
+        .catch(next)
+})
 
 router.get('/stats/leads', (request, response, next) => {
     const { userID } = request

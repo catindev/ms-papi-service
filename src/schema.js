@@ -100,6 +100,7 @@ const Call = mongoose.model('Call', new Schema({
     customer: { type: ObjectId, ref: 'Customer' },
     trunk: { type: ObjectId, ref: 'Trunk' },
     user: { type: ObjectId, ref: 'User' },
+    answeredBy: { type: ObjectId, ref: 'User' },
     date: { type: Date, default: new Date() },
     record: String,
     duration: {

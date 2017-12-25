@@ -205,46 +205,48 @@ async function statsLeadsFromTrunks({ userID, start, end }) {
     return results
 }
 
-// async function incomingCallsStats({ userID, start, end, interval }) {
-//     if (typeof userID === 'string') userID = toObjectId(userID)
-//     const { account: { _id } } = await userById({ userID })
+async function incomingCallsStats({ userID, start, end, interval }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    const { account: { _id } } = await userById({ userID })
 
-//     const Moment = require('moment')
-//     const MomentRange = require('moment-range')
-//     const moment = MomentRange.extendMoment(Moment)
-//     moment.locale('ru')
+    const Moment = require('moment')
+    const MomentRange = require('moment-range')
+    const moment = MomentRange.extendMoment(Moment)
+    moment.locale('ru')
 
-//     function formatInterval(date, type, index) {
-//       if (type === 'weeks') return (index + 1) + ' неделя'
-//       if (type === 'months') return date.format('MMMM')
-//       return date.format('DD MMM')  
-//     }
+    function formatInterval(date, type, index) {
+      if (type === 'weeks') return (index + 1) + ' неделя'
+      if (type === 'months') return date.format('MMMM')
+      return date.format('DD MMM')  
+    }
 
-//     const rangeItemToMongoQuery = (date, type, index) => ({
-//       name: formatInterval(date, type, index),
-//       date: {
-//         $gte: date.startOf( type ).toDate(),
-//         $lt: date.endOf( type ).toDate()
-//       }
-//     })
+    const rangeItemToMongoQuery = (date, type, index) => ({
+      name: formatInterval(date, type, index),
+      date: {
+        $gte: date.startOf( type ).toDate(),
+        $lt: date.endOf( type ).toDate()
+      }
+    })
 
-//     const period = moment.range(new Date(start).toISOString(), new Date(end).toISOString())
-//     const listOfRanges = Array.from(period.by(interval, { step: 1 }))
-//     const listOfIntervals = listOfRanges.map( (range, index) => rangeItemToMongoQuery(range, interval, index))
+    const period = moment.range(new Date(start).toISOString(), new Date(end).toISOString())
+    const listOfRanges = Array.from(period.by(interval, { step: 1 }))
+    const listOfIntervals = listOfRanges.map( (range, index) => rangeItemToMongoQuery(range, interval, index))
 
-//     const results = []
-//     for( mongoInterval of listOfIntervals) {
-//       const calls = await Call.find({ account: _id, date: mongoInterval.date }).lean().exec()
-//       const missed = calls.filter(({ record }) => !record )
-//       const result = { name: mongoInterval.name }
-//       result['Входящие'] = calls.length
-//       result['Пропущенные'] = missed.length
-//       results.push(result)
-//     }
+    // return listOfIntervals
+
+    const results = []
+    for( mongoInterval of listOfIntervals) {
+      const calls = await Call.find({ account: _id, date: mongoInterval.date }).lean().exec()
+      const missed = calls.filter(({ record }) => !record )
+      const result = { name: mongoInterval.name }
+      result['Входящие'] = calls.length
+      result['Пропущенные'] = missed.length
+      results.push(result)
+    }
 
 
-//     return results 
-// }
+    return results 
+}
 
 module.exports = { 
   managersLeads, 
@@ -252,5 +254,6 @@ module.exports = {
   statsInProgress, 
   customerPortrait, 
   statsLeadsFromTrunks,
-  fuckedLeads
+  fuckedLeads,
+  incomingCallsStats
 }
