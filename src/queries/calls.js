@@ -30,7 +30,7 @@ async function recentCalls({ userID }) {
             customer: { id: customer._id, name: customer.name },
             missed: !record,
             isCallback,
-            owner: answeredBy._id.toString() === user._id.toString()? 'you' : user.name
+            owner: (answeredBy && answeredBy._id.toString() === user._id.toString()) ? 'you' : user.name
         })
     )
 
