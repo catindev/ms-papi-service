@@ -10,7 +10,7 @@ async function recentCalls({ userID }) {
     const { account: { _id } } = await userById({ userID })
 
     const calls = await Call
-        .find({ account: _id, $or: [ { answeredBy: userID }, { user: userID } ] })
+        .find({ account: _id, $or: [{ answeredBy: userID }, { user: userID }] })
         .limit(50)
         .sort('-_id')
         .populate('customer user answeredBy')
@@ -24,14 +24,21 @@ async function recentCalls({ userID }) {
     // })
 
     if (calls.length > 0) return calls.map(
-        ({ _id, date, customer, record, isCallback, answeredBy, user }) => ({
-            _id,
-            date: humanDate(date),
-            customer: { id: customer._id, name: customer.name },
-            missed: !record,
-            isCallback,
-            owner: (answeredBy && answeredBy._id.toString() === user._id.toString()) ? 'you' : user.name
-        })
+        ({ _id, date, customer, record, isCallback, answeredBy, user }) => {
+            const owner = answeredBy ?
+                answeredBy._id.toString() === user._id.toString() ? 'you' : user.name
+                :
+                userID.toString() === user._id.toString() ? 'you' : user.name 
+
+            return {
+                _id,
+                date: humanDate(date),
+                customer: { id: customer._id, name: customer.name },
+                missed: !record,
+                isCallback,
+                owner
+            }
+        }
     )
 
     return []
