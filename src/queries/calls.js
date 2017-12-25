@@ -10,7 +10,7 @@ async function recentCalls({ userID }) {
     const { account: { _id } } = await userById({ userID })
 
     const calls = await Call
-        .find({ account: _id, answeredBy: userID })
+        .find({ account: _id, $or: [ { answeredBy: userID }, { user: userID } ] })
         .limit(50)
         .sort('-_id')
         .populate('customer user answeredBy')
