@@ -9,6 +9,7 @@ const { userById } = require('./users')
 const { addLog } = require('./logs')
 const request = require('request-promise')
 const md5 = require('../utils/md5')
+const moment = require('moment')
 
 async function updateLast({ userID, customerID, lastActivity }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -139,7 +140,7 @@ async function customerById({ userID, customerID, params = false }) {
     if (!customer) throw new CustomError('Клиент не найден', 404)
 
     if (customer.user && !customer.user._id.equals(userID)) {
-        throw new CustomError('Клиент назначен на другого менеджера', 404)
+        // throw new CustomError('Клиент назначен на другого менеджера', 404)
     }
 
     customer = customer.toObject()
@@ -271,10 +272,17 @@ async function updateCustomer({ userID, customerID, body }) {
 }
 
 
-async function funnel({ userID }) {
+async function funnel({ userID, today = false }) {
     function getId(name) {
         const hash = md5(name)
         return hash.replace(/[0-9]/g, '') + hash.replace(/\D/g,'')
+    }
+
+    function todayRange() {
+        return {
+            $gte: moment().startOf('day').toISOString(),
+            $lt: moment().endOf('day').toISOString()
+        }
     }
 
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -284,6 +292,7 @@ async function funnel({ userID }) {
     funnelSteps.unshift('in-progress')
 
     const query = { account: _id, user: userID, funnelStep: { $in: funnelSteps } }
+    today && (query['task.when'] = todayRange())
     const customers = await Customer.find(query)
 
     if (!customers || customers.length === 0) return []

@@ -21,6 +21,7 @@
 
 // console.log(chunk(start, end, chunks))
 
-const f = require('./utils/humanDate')
+const moment = require('moment')
 
-console.log(f('2017-12-01', true))
+console.log(moment().startOf('day').format('D MMMM  HH:mm'))
+console.log(moment().endOf('day').toISOString())

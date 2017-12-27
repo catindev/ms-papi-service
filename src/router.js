@@ -161,9 +161,9 @@ router.get('/customers/closed',  (request, response, next) => {
 
 
 router.get('/customers/funnel', (request, response, next) => {
-    const { userID, query: { step = 'lead', skip = 0 } } = request
+    const { userID, query: { step = 'lead', skip = 0, today } } = request
 
-    funnel({ userID, step, skip })
+    funnel({ userID, today, step, skip })
         .then(items => response.json({ status: 200, items }))
         .catch(next)
 })
