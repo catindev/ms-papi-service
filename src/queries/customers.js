@@ -385,7 +385,7 @@ async function call({ userID, customerID }) {
     //     // Сценарий — чужой клиент
     // }
 
-    if (!customer.user) await Customer.update({ _id: customerID }, { user: userID })
+    // if (!customer.user) await Customer.update({ _id: customerID }, { user: userID })
   
     const options = {
         uri: 'http://185.22.65.50/call.php',
@@ -399,7 +399,7 @@ async function call({ userID, customerID }) {
         json: true
     }   
 
-    await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
+    // await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
 
     const response = await request(options)
 
