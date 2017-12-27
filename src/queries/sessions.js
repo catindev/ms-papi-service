@@ -53,7 +53,6 @@ async function SignOut({ token }) {
 async function getTokenOwner({ token }) {
 
 	function removeSystemKeys(original) {
-		console.log('original', original)
 		let replicant = JSON.parse(JSON.stringify(original))
 		delete replicant.password
 		delete replicant.__v

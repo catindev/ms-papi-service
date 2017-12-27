@@ -4,6 +4,7 @@ const CustomError = require('../utils/error')
 const formatNumber = require('../utils/formatNumber')
 const formatNumberForHumans = require('../utils/formatNumberForHumans')
 const humanDate = require('../utils/humanDate')
+const formatDate = require('../utils/formatDate')
 const { userById } = require('./users')
 const { addLog } = require('./logs')
 const request = require('request-promise')
@@ -18,6 +19,20 @@ async function updateLast({ userID, customerID, lastActivity }) {
     return await Customer.findOneAndUpdate(
         { _id: customerID, user: userID, account: _id }, 
         { $set: { lastUpdate: new Date(), lastActivity } }, 
+        { new: true })
+}
+
+async function setTask({ userID, customerID, when, what }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof customerID === 'string') customerID = toObjectId(customerID)
+
+    const { account: { _id } } = await userById({ userID })
+
+    when = new Date(when)
+
+    return await Customer.findOneAndUpdate(
+        { _id: customerID, user: userID, account: _id }, 
+        { $set: { 'task.what': what, 'task.when': when } }, 
         { new: true })
 }
 
@@ -124,11 +139,16 @@ async function customerById({ userID, customerID, params = false }) {
     if (!customer) throw new CustomError('Клиент не найден', 404)
 
     if (customer.user && !customer.user._id.equals(userID)) {
-        // Чужой клиент?
+        throw new CustomError('Клиент назначен на другого менеджера', 404)
     }
 
     customer = customer.toObject()
     customer.phones = customer.phones.map(formatNumberForHumans)
+
+    if (customer.task) {
+        customer.task.displayWhen = humanDate(customer.task.when)
+        customer.task.when = formatDate(customer.task.when, 'YYYY-MM-DD')
+    } else console.log('no task')
 
     const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id').lean().exec()
 
@@ -435,5 +455,6 @@ module.exports = {
     funnel,
     coldCall,
     stepDown,
-    recents
+    recents,
+    setTask
 }

@@ -83,6 +83,10 @@ const customerSchema = new Schema({
         comment: String,
         previousStep: String,
         date: Date
+    },
+    task: {
+        what: String,
+        when: Date
     }
 }, { strict: false })
 

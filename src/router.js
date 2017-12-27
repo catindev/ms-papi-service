@@ -15,7 +15,8 @@ const {
     funnel,
     coldCall,
     stepDown,
-    recents
+    recents,
+    setTask
 } = require('./queries/customers')
 const { getLeadsStats } = require('./queries/trunks')
 const { managersLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks, fuckedLeads, incomingCallsStats } = require('./queries/stats')
@@ -171,6 +172,14 @@ router.put('/customers/:customerID/step.down', (request, response, next) => {
     const { userID, params: { customerID } } = request
 
     stepDown({ userID, customerID })
+        .then(customer => response.json({ status: 200, customer }))
+        .catch(next)
+})
+
+router.put('/customers/:customerID/set.task', (request, response, next) => {
+    const { userID, params: { customerID }, body: { when, what } } = request
+
+    setTask({ userID, customerID, when, what })
         .then(customer => response.json({ status: 200, customer }))
         .catch(next)
 })

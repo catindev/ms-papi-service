@@ -12,7 +12,7 @@ async function recentCalls({ userID }) {
     const calls = await Call
         .find({ account: _id, $or: [{ answeredBy: userID }, { user: userID }] })
         .limit(50)
-        .sort('-_id')
+        .sort('-date')
         .populate('customer user answeredBy')
         .lean()
         .exec()
