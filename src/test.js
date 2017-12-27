@@ -11,10 +11,16 @@
 // console.log(fh(f('+7 (7212) 555-667')))
 // console.log(fh(f('7212555667')))
 
-const chunk = require('chunk-date-range')
+/****************************/
 
-var start = new Date('2017-12-01');
-var end = new Date('2017-12-17');
-var chunks = 'week';
+// const chunk = require('chunk-date-range')
 
-console.log(chunk(start, end, chunks))
+// var start = new Date('2017-12-01');
+// var end = new Date('2017-12-17');
+// var chunks = 'week';
+
+// console.log(chunk(start, end, chunks))
+
+const f = require('./utils/humanDate')
+
+console.log(f('2017-12-01', true))
