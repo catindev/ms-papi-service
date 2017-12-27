@@ -146,7 +146,7 @@ async function customerById({ userID, customerID, params = false }) {
     customer.phones = customer.phones.map(formatNumberForHumans)
 
     if (customer.task) {
-        customer.task.displayWhen = humanDate(customer.task.when)
+        customer.task.displayWhen = humanDate(customer.task.when, true)
         customer.task.when = formatDate(customer.task.when, 'YYYY-MM-DD')
     } else console.log('no task')
 
