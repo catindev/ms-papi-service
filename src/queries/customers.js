@@ -23,7 +23,7 @@ async function updateLast({ userID, customerID, lastActivity }) {
         { new: true })
 }
 
-async function setTask({ userID, customerID, when, what }) {
+async function setTask({ userID, customerID, when, what, time = '00:00' }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
@@ -33,7 +33,7 @@ async function setTask({ userID, customerID, when, what }) {
 
     return await Customer.findOneAndUpdate(
         { _id: customerID, user: userID, account: _id },
-        { $set: { 'task.what': what, 'task.when': when } },
+        { $set: { 'task.what': what, 'task.when': when, 'task.time': time } },
         { new: true })
 }
 
@@ -149,7 +149,7 @@ async function customerById({ userID, customerID, params = false }) {
     if (customer.task) {
         customer.task.displayWhen = humanDate(customer.task.when, true)
         customer.task.when = formatDate(customer.task.when, 'YYYY-MM-DD')
-    } else console.log('no task')
+    }
 
     const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id').lean().exec()
 

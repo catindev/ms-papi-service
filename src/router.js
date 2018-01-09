@@ -72,7 +72,7 @@ router.post('/sessions', (request, response, next) => {
         .catch(next)
 })
 
-router.get('/customers/leads',  (request, response, next) => {
+router.get('/customers/leads', (request, response, next) => {
     const { userID, query: { skip } } = request
 
     leads({ userID, step: 'lead', skip })
@@ -80,7 +80,7 @@ router.get('/customers/leads',  (request, response, next) => {
         .catch(next)
 })
 
-router.get('/customers/cold.leads',  (request, response, next) => {
+router.get('/customers/cold.leads', (request, response, next) => {
     const { userID, query: { skip } } = request
 
     coldLeads({ userID, skip })
@@ -123,7 +123,7 @@ router.get('/customers', (request, response, next) => {
 })
 
 
-router.put('/customers/:customerID/reject',  (request, response, next) => {
+router.put('/customers/:customerID/reject', (request, response, next) => {
     const { userID, params: { customerID }, body: { comment, reason } } = request
 
     if (!reason) return response.status(400).json({
@@ -137,7 +137,7 @@ router.put('/customers/:customerID/reject',  (request, response, next) => {
 })
 
 
-router.put('/customers/:customerID/deal',  (request, response, next) => {
+router.put('/customers/:customerID/deal', (request, response, next) => {
     const { userID, params: { customerID }, body: { comment, amount } } = request
 
     if (!amount) return response.status(400).json({
@@ -151,7 +151,7 @@ router.put('/customers/:customerID/deal',  (request, response, next) => {
 })
 
 
-router.get('/customers/closed',  (request, response, next) => {
+router.get('/customers/closed', (request, response, next) => {
     const { userID, query: { skip } } = request
 
     closedCustomers({ userID })
@@ -177,9 +177,9 @@ router.put('/customers/:customerID/step.down', (request, response, next) => {
 })
 
 router.put('/customers/:customerID/set.task', (request, response, next) => {
-    const { userID, params: { customerID }, body: { when, what } } = request
+    const { userID, params: { customerID }, body: { when, what, time } } = request
 
-    setTask({ userID, customerID, when, what })
+    setTask({ userID, customerID, when, what, time })
         .then(customer => response.json({ status: 200, customer }))
         .catch(next)
 })
@@ -187,17 +187,17 @@ router.put('/customers/:customerID/set.task', (request, response, next) => {
 router.get('/customers/:customerID/call', (request, resp, next) => {
     const { userID, params: { customerID } } = request
 
-    addLog({ 
-        who: userID, type: 'callback', what: 'запрос на коллбек', 
-        payload: `ObjectId("${customerID}")` 
+    addLog({
+        who: userID, type: 'callback', what: 'запрос на коллбек',
+        payload: `ObjectId("${customerID}")`
     })
 
     call({ userID, customerID })
         .then(({ params, response }) => {
-            addLog({ 
-                who: userID, type: 'callback', what: 'исходящий звонок', 
-                payload: { params, response } 
-            })           
+            addLog({
+                who: userID, type: 'callback', what: 'исходящий звонок',
+                payload: { params, response }
+            })
             response === '{ success: true }' ?
                 resp.json({ status: 200 }) :
                 resp.status(500).json({ status: 500, message: 'Отмена звонка' })
@@ -209,16 +209,16 @@ router.get('/customers/:customerID/call', (request, resp, next) => {
 router.get('/customers/:customerID/cold.call', (request, resp, next) => {
     const { userID, params: { customerID } } = request
 
-    addLog({ 
-        who: userID, type: 'callback', what: 'запрос на холодный коллбек', 
-        payload: `ObjectId("${customerID}")` 
+    addLog({
+        who: userID, type: 'callback', what: 'запрос на холодный коллбек',
+        payload: `ObjectId("${customerID}")`
     })
 
     coldCall({ userID, customerID })
         .then(({ params, response }) => {
-            addLog({ 
-                who: userID, type: 'callback', what: 'холодный звонок', 
-                payload: { params, response } 
+            addLog({
+                who: userID, type: 'callback', what: 'холодный звонок',
+                payload: { params, response }
             })
             response === '{ success: true }' ?
                 resp.json({ status: 200 }) :
@@ -228,7 +228,7 @@ router.get('/customers/:customerID/cold.call', (request, resp, next) => {
 })
 
 
-router.get('/customers/:customerID',  (request, response, next) => {
+router.get('/customers/:customerID', (request, response, next) => {
     const { userID, params: { customerID }, query: { params } } = request
 
     customerById({ userID, customerID, params })
@@ -257,7 +257,7 @@ router.post('/log/clean', (request, response, next) => {
 })
 
 router.get('/stats/test', (request, response, next) => {
-   const { userID, query: { start, end, interval } } = request
+    const { userID, query: { start, end, interval } } = request
     incomingCallsStats({ userID, start, end, interval })
         .then(stats => response.json({ status: 200, stats }))
         .catch(next)
@@ -286,7 +286,7 @@ router.get('/stats/in-progress', (request, response, next) => {
 
 router.get('/stats/portrait', (request, response, next) => {
     const { userID, query: { start, end } } = request
-    customerPortrait({ userID, start, end  })
+    customerPortrait({ userID, start, end })
         .then(portrait => response.json({ status: 200, portrait }))
         .catch(next)
 })
@@ -307,10 +307,10 @@ router.get('/stats/leads/fucked', (request, response, next) => {
 
 router.get('/mlog', (request, response, next) => {
     var fs = require('fs');
-    fs.readFile('/var/log/mongodb/mongod.log', {encoding: 'utf-8'}, function(err,data){
+    fs.readFile('/var/log/mongodb/mongod.log', { encoding: 'utf-8' }, function (err, data) {
         if (!err) {
             console.log('received data: ' + data);
-            response.writeHead(200, {'Content-Type': 'text/plain'});
+            response.writeHead(200, { 'Content-Type': 'text/plain' });
             response.write(data);
             response.end();
         } else {

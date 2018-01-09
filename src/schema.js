@@ -86,11 +86,12 @@ const customerSchema = new Schema({
     },
     task: {
         what: String,
-        when: Date
+        when: Date,
+        time: String
     }
 }, { strict: false })
 
-customerSchema.pre('save', function(next) {
+customerSchema.pre('save', function (next) {
     this.phones = this.phones.map(phone => formatNumber(phone))
     this.lastUpdate = new Date()
     next()
