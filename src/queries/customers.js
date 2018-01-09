@@ -18,8 +18,8 @@ async function updateLast({ userID, customerID, lastActivity }) {
     const { account: { _id, funnelSteps } } = await userById({ userID })
 
     return await Customer.findOneAndUpdate(
-        { _id: customerID, user: userID, account: _id }, 
-        { $set: { lastUpdate: new Date(), lastActivity } }, 
+        { _id: customerID, user: userID, account: _id },
+        { $set: { lastUpdate: new Date(), lastActivity } },
         { new: true })
 }
 
@@ -32,8 +32,8 @@ async function setTask({ userID, customerID, when, what }) {
     when = new Date(when)
 
     return await Customer.findOneAndUpdate(
-        { _id: customerID, user: userID, account: _id }, 
-        { $set: { 'task.what': what, 'task.when': when } }, 
+        { _id: customerID, user: userID, account: _id },
+        { $set: { 'task.what': what, 'task.when': when } },
         { new: true })
 }
 
@@ -56,7 +56,7 @@ async function leads({ userID, skip = 0 }) {
         account: _id,
         funnelStep: 'lead',
         '$or': [{ user: { $exists: false } }, { user: userID }],
-    }).lean().exec()
+    }).sort('_id').lean().exec()
 
     if (customers.length === 0) return customers
 
@@ -81,7 +81,7 @@ async function coldLeads({ userID, skip = 0 }) {
         account: _id,
         funnelStep: 'cold',
         user: userID
-    })
+    }).sort('_id')
 
     return customers
 }
@@ -94,7 +94,7 @@ async function recents({ userID, skip = 0 }) {
 
     const options = { skip, limit: 50 }
     const customers = await Customer
-        .find({ account: _id, user: userID, funnelStep: { $nin:[ 'lead' ] }, lastActivity: { $exists: true } })
+        .find({ account: _id, user: userID, funnelStep: { $nin: ['lead'] }, lastActivity: { $exists: true } })
         .sort('-lastUpdate')
 
     return customers
@@ -190,15 +190,16 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
     if (name) reject.name = name
 
     return await Customer.findOneAndUpdate(
-        { _id: customerID, account: _id }, 
-        { $set: {
-            funnelStep: 'reject',
-            lastUpdate: new Date(),
-            lastActivity: 'оформлен отказ',
-            reject,
-            user: user? user : userID
-        }
-    }, { new: true })
+        { _id: customerID, account: _id },
+        {
+            $set: {
+                funnelStep: 'reject',
+                lastUpdate: new Date(),
+                lastActivity: 'оформлен отказ',
+                reject,
+                user: user ? user : userID
+            }
+        }, { new: true })
 }
 
 
@@ -275,7 +276,7 @@ async function updateCustomer({ userID, customerID, body }) {
 async function funnel({ userID, today = false }) {
     function getId(name) {
         const hash = md5(name)
-        return hash.replace(/[0-9]/g, '') + hash.replace(/\D/g,'')
+        return hash.replace(/[0-9]/g, '') + hash.replace(/\D/g, '')
     }
 
     function todayRange() {
@@ -328,8 +329,8 @@ async function stepDown({ userID, customerID }) {
     const index = funnelSteps.indexOf(customer.funnelStep)
 
     return await Customer.findOneAndUpdate(
-        { _id: customerID }, 
-        { $set: { funnelStep: funnelSteps[index + 1], lastUpdate: new Date(), lastActivity: 'прогресс в воронке' } }, 
+        { _id: customerID },
+        { $set: { funnelStep: funnelSteps[index + 1], lastUpdate: new Date(), lastActivity: 'прогресс в воронке' } },
         { new: true })
 }
 
@@ -376,17 +377,17 @@ async function call({ userID, customerID }) {
 
     if (!customer || customer === null) throw new CustomError('Клиент не найден', 404)
 
-    addLog({ 
-        who: userID, type: 'callback', what: 'запрос на коллбек', 
-        payload: { } 
-    })        
+    addLog({
+        who: userID, type: 'callback', what: 'запрос на коллбек',
+        payload: {}
+    })
 
     // if (customer.user && !customer.user._id.equals(userID)) {
     //     // Сценарий — чужой клиент
     // }
 
     // if (!customer.user) await Customer.update({ _id: customerID }, { user: userID })
-  
+
     const options = {
         uri: 'http://185.22.65.50/call.php',
         qs: {
@@ -397,19 +398,19 @@ async function call({ userID, customerID }) {
         },
         headers: { 'User-Agent': 'Request-Promise' },
         json: true
-    }   
+    }
 
     // await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
 
     const response = await request(options)
 
-    return { 
-        params: { 
+    return {
+        params: {
             cn: customer.phones[0].replace('+7', '8'),
             un: phones[0].replace('+7', '8'),
             tr: customer.trunk.phone.replace('+7', '8')
         },
-        response 
+        response
     }
 }
 
@@ -439,13 +440,13 @@ async function coldCall({ userID, customerID }) {
 
     const response = await request(options)
 
-    return { 
-        params: { 
+    return {
+        params: {
             cn: customer.phones[0].replace('+7', '8'),
             un: phones[0].replace('+7', '8'),
             tr: customer.trunk.phone.replace('+7', '8')
         },
-        response 
+        response
     }
 }
 
