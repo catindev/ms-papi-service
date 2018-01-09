@@ -23,4 +23,5 @@
 
 const f = require('./utils/humanDate')
 
-console.log(f(new Date(), true))
+console.log(f('2017-12-26T18:54:10.373Z', true))
+

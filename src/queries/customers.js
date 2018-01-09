@@ -10,6 +10,7 @@ const { addLog } = require('./logs')
 const request = require('request-promise')
 const md5 = require('../utils/md5')
 const moment = require('moment')
+const { sortBy } = require('lodash')
 
 async function updateLast({ userID, customerID, lastActivity }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -286,6 +287,19 @@ async function funnel({ userID, today = false }) {
         }
     }
 
+    function convertToTimestamp(date, time = '00:00') {
+        const d = new Date(date)
+        const t = time.split(':')
+        d.setHours(t[0], t[1], 0)
+        return d.getTime()
+    }
+
+    function isToday(date) {
+        const d = moment(new Date(date))
+        const today = moment().startOf('day')
+        return d.isSame(today, 'd')
+    }
+
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id, funnelSteps } } = await userById({ userID })
@@ -294,16 +308,33 @@ async function funnel({ userID, today = false }) {
 
     const query = { account: _id, user: userID, funnelStep: { $in: funnelSteps } }
     today && (query['task.when'] = todayRange())
-    const customers = await Customer.find(query)
+    const customers = await Customer.find(query).lean().exec()
 
     if (!customers || customers.length === 0) return []
+
+    const listOfCustomers = customers.map(customer => {
+        if (!customer.task) {
+            customer.task = { what: 'Нет задачи 😡', timestamp: 0 }
+            return customer
+        }
+        customer.task.displayWhen = humanDate(customer.task.when, true) + ' в ' + (customer.task.time || '00:00')
+        customer.task.timestamp = convertToTimestamp(customer.task.when, customer.task.time)
+
+        if (customer.task.timestamp < new Date().getTime()) {
+            customer.task.displayWhen = customer.task.displayWhen + ' ⚠️ 🔥'
+        } else {
+            isToday(customer.task.when) && (customer.task.displayWhen = customer.task.displayWhen + ' ☀️')
+        }
+
+        return customer
+    })
+
 
     return funnelSteps.reduce((result, step) => {
         result.push({
             name: step,
             id: getId(step),
-            customers: customers
-                .filter(customer => customer.funnelStep === step)
+            customers: sortBy(listOfCustomers.filter(customer => customer.funnelStep === step), ({ task: { timestamp } }) => timestamp, ['desc'])
         })
         return result
     }, [])
