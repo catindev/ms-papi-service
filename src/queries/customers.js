@@ -322,16 +322,14 @@ async function funnel({ userID, today = false }) {
         customer.task.timestamp = convertToTimestamp(customer.task.when, customer.task.time)
 
         if (today) {
-            customer.task.what = customer.task.timestamp < new Date().getTime() ?
-                customer.task.what + ' в ' + customer.task.time + ' ⚠️ 🔥 🤬'
-                :
-                customer.task.what + ' в ' + customer.task.time
-        }
-
-        if (customer.task.timestamp < new Date().getTime()) {
-            customer.task.displayWhen = customer.task.displayWhen + ' ⚠️ 🔥 🤬'
+            customer.task.displayWhen = customer.task.timestamp < new Date().getTime() ?
+                customer.task.time + ' ⚠️ 🔥 🤬' : customer.task.time
         } else {
-            isToday(customer.task.when) && (customer.task.displayWhen = customer.task.displayWhen + ' ☀️')
+            if (customer.task.timestamp < new Date().getTime()) {
+                customer.task.displayWhen = customer.task.displayWhen + ' ⚠️ 🔥 🤬'
+            } else {
+                isToday(customer.task.when) && (customer.task.displayWhen = customer.task.displayWhen + ' 🔔')
+            }
         }
 
         return customer
