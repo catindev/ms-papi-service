@@ -318,7 +318,7 @@ async function funnel({ userID, today = false }) {
             return customer
         }
 
-        customer.task.displayWhen = humanDate(customer.task.when, true) + ' в ' + (customer.task.time || '00:00')
+        customer.task.displayWhen = humanDate(customer.task.when, true) + (customer.task.time ? ` в ${customer.task.time}` : '')
         customer.task.timestamp = convertToTimestamp(customer.task.when, customer.task.time)
 
         if (today) {
