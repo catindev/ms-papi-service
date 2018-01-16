@@ -16,7 +16,7 @@ const app = express()
 const RateLimit = require('express-rate-limit')
 const limiter = new RateLimit({
   windowMs: 1000,
-  max: 10000,
+  max: 5000,
   delayMs: 0
 })
 
@@ -28,7 +28,7 @@ app.use(cors({
   "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
   "preflightContinue": false,
 }))
-// app.use(limiter)
+app.use(limiter)
 
 app.use(require('./utils/validateSession'))
 app.use(require('./router'))
