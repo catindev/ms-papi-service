@@ -28,7 +28,7 @@ app.use(cors({
   "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
   "preflightContinue": false,
 }))
-app.use(limiter)
+// app.use(limiter)
 
 app.use(require('./utils/validateSession'))
 app.use(require('./router'))
