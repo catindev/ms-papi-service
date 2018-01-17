@@ -10,6 +10,7 @@ Raven
 const express = require('express')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
+const compression = require('compression')
 const cors = require('cors')
 const app = express()
 
@@ -23,6 +24,7 @@ const limiter = new RateLimit({
 app.use(cookieParser())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use(compression())
 app.use(cors({
   "origin": "*",
   "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
