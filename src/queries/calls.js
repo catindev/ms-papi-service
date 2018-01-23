@@ -2,7 +2,20 @@ const { Call, Account, User, Customer } = require('../schema')
 const toObjectId = require('mongoose').Types.ObjectId
 const CustomError = require('../utils/error')
 const { userById } = require('./users')
+const { leads } = require('./customers')
+const { sortBy } = require('lodash')
 const humanDate = require('../utils/humanDate')
+
+const populateQuery = [
+    { path: 'customer', model: 'Customer' },
+    { path: 'user', model: 'User' },
+    {
+        path: 'customer', model: 'Customer',
+        populate: { path: 'user', model: 'User' }
+    },
+    { path: 'answeredBy', model: 'User' },
+]
+
 
 async function recentCalls({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -10,19 +23,32 @@ async function recentCalls({ userID }) {
     const { account: { _id } } = await userById({ userID })
 
     const calls = await Call
-        .find({ account: _id, user: userID })
+        .find({ account: _id, $or: [{ user: userID }, { user: { $exists: false } }] })
         .limit(15)
         .sort('-date')
-        .populate('customer user answeredBy')
+        .populate(populateQuery)
         .lean()
         .exec()
 
     if (calls.length > 0) return calls.map(
         ({ _id, date, customer, record, isCallback, answeredBy, user }) => {
-            const owner = answeredBy ?
-                answeredBy._id.toString() === user._id.toString() ? 'you' : user.name
+
+            // тут геморно, но из-за того что ранее менеджер не писался
+            // в звонок если звонок был пропущенный. поэтому приходится 
+            // сначала проверять есть ли вообще у звонка менеджер
+            const owner = user ?
+                userID.toString() === user._id.toString() ? 'you' : user.name
+                // answeredBy ?
+                //     answeredBy._id.toString() === user._id.toString() ? 'you' : user.name
+                //     :
+                //     userID.toString() === user._id.toString() ? 'you' : user.name
                 :
-                userID.toString() === user._id.toString() ? 'you' : user.name 
+                customer.user ?
+                    userID.toString() === customer.user._id.toString() ? 'you' : customer.user.name
+                    :
+                    'lead'
+                ;
+
 
             return {
                 _id,
