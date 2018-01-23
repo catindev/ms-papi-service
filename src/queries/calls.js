@@ -24,7 +24,7 @@ async function recentCalls({ userID }) {
 
     const calls = await Call
         .find({ account: _id, $or: [{ user: userID }, { user: { $exists: false } }] })
-        .limit(15)
+        .limit(25)
         .sort('-date')
         .populate(populateQuery)
         .lean()
