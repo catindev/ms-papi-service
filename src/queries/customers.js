@@ -274,7 +274,7 @@ async function updateCustomer({ userID, customerID, body }) {
 }
 
 
-async function funnel({ userID }) {
+async function funnel({ userID, today = false }) {
     function getId(name) {
         const hash = md5(name)
         return hash.replace(/[0-9]/g, '') + hash.replace(/\D/g, '')
