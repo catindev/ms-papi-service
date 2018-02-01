@@ -19,7 +19,7 @@ const {
     setTask
 } = require('./queries/customers')
 const { getLeadsStats } = require('./queries/trunks')
-const { managersLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks, fuckedLeads, incomingCallsStats } = require('./queries/stats')
+const { managersLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks, fuckedLeads, incomingCallsStats, funnelAll } = require('./queries/stats')
 const { allAccounts } = require('./queries/accounts')
 const { addPhoneNumber, removePhoneNumber, editPhoneNumber } = require('./queries/users')
 const { recentCalls } = require('./queries/calls')
@@ -256,7 +256,9 @@ router.post('/log/clean', (request, response, next) => {
         .catch(next)
 })
 
-router.get('/stats/test', (request, response, next) => {
+
+// !!! чинить
+router.get('/stats/calls', (request, response, next) => {
     const { userID, query: { start, end, interval } } = request
     incomingCallsStats({ userID, start, end, interval })
         .then(stats => response.json({ status: 200, stats }))
@@ -302,6 +304,13 @@ router.get('/stats/leads/fucked', (request, response, next) => {
     const { userID, query: { start, end } } = request
     fuckedLeads({ userID })
         .then(stats => response.json(Object.assign({ status: 200 }, stats)))
+        .catch(next)
+})
+
+router.get('/stats/funnel', (request, response, next) => {
+    const { userID } = request
+    funnelAll({ userID })
+        .then(stats => response.json({ status: 200, stats }))
         .catch(next)
 })
 

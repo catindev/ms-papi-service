@@ -3,26 +3,27 @@ const { Account, Customer, User, Param, Trunk, Call } = require('../schema')
 const CustomError = require('../utils/error')
 const { userById } = require('./users')
 const { findIndex, isArray } = require('lodash')
+const md5 = require('../utils/md5')
 
 // TODO: проверять на босса
 
 async function fuckedLeads({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
-    const { account: { _id } } = await userById({ userID }) 
-    
+    const { account: { _id } } = await userById({ userID })
+
     const missed = await Customer
         .find({ account: _id, user: { $exists: false }, funnelStep: 'lead' })
 
     let overMissed = 0, halfMissed = 0
     for (customer of missed) {
-      const badcalls = await Call.find({ customer: customer._id, record: { $exists: false }, isCallback: false }).count()
-      const badrecalls = await Call.find({ customer: customer._id, record: { $exists: false }, isCallback: true }).count()
-      
-      if (badcalls > 0 && badrecalls === 0) overMissed++
-      if (badcalls > 0 && badrecalls > 0) halfMissed++
-    } 
+        const badcalls = await Call.find({ customer: customer._id, record: { $exists: false }, isCallback: false }).count()
+        const badrecalls = await Call.find({ customer: customer._id, record: { $exists: false }, isCallback: true }).count()
 
-    return { missed: missed.length, halfMissed, overMissed }  
+        if (badcalls > 0 && badrecalls === 0) overMissed++
+        if (badcalls > 0 && badrecalls > 0) halfMissed++
+    }
+
+    return { missed: missed.length, halfMissed, overMissed }
 }
 
 
@@ -40,7 +41,7 @@ async function managersLeads({ userID }) {
         const index = findIndex(stats, { manager: name })
 
         if (index !== -1) stats[index].count++
-            else stats.push({ manager: name, count: 1 })
+        else stats.push({ manager: name, count: 1 })
 
         return stats
     }, [])
@@ -55,10 +56,10 @@ async function statsClosed({ userID, start, end }) {
 
     const allCustomersQuery = { account: _id, funnelStep: 'reject', 'reject.previousStep': 'in-progress' }
     if (start || end) {
-      allCustomersQuery.created = {}
-      if (start) allCustomersQuery.created.$gte = start
-      if (end) allCustomersQuery.created.$lt = end 
-    }  
+        allCustomersQuery.created = {}
+        if (start) allCustomersQuery.created.$gte = start
+        if (end) allCustomersQuery.created.$lt = end
+    }
 
 
     let funnel = [], counter = 0
@@ -144,10 +145,10 @@ async function customerPortrait({ userID, start, end }) {
     }
 
     if (start || end) {
-      allCustomersQuery.created = {}
-      if (start) allCustomersQuery.created.$gte = start
-      if (end) allCustomersQuery.created.$lt = end 
-    }  
+        allCustomersQuery.created = {}
+        if (start) allCustomersQuery.created.$gte = start
+        if (end) allCustomersQuery.created.$lt = end
+    }
 
     const allCustomers = await Customer.find(allCustomersQuery)
 
@@ -164,10 +165,10 @@ async function customerPortrait({ userID, start, end }) {
 
         const values = []
         for (item of items) {
-            const search = type === 'select'?
-              all.filter(customer => customer[id] === item)
-              :
-              all.filter(customer => customer[id].indexOf(item) !== -1)
+            const search = type === 'select' ?
+                all.filter(customer => customer[id] === item)
+                :
+                all.filter(customer => customer[id].indexOf(item) !== -1)
 
             const count = search ? search.length : 0
             const percents = count > 0 ? roundp(count, all.length) : 0
@@ -190,10 +191,10 @@ async function statsLeadsFromTrunks({ userID, start, end }) {
     const query = {}
 
     if (start || end) {
-      query.created = {}
-      if (start) query.created.$gte = start
-      if (end) query.created.$lt = end 
-    }    
+        query.created = {}
+        if (start) query.created.$gte = start
+        if (end) query.created.$lt = end
+    }
 
     const trunks = await Trunk.find({ account: _id })
     for (let trunk of trunks) {
@@ -215,45 +216,101 @@ async function incomingCallsStats({ userID, start, end, interval }) {
     moment.locale('ru')
 
     function formatInterval(date, type, index) {
-      if (type === 'weeks') return (index + 1) + ' неделя'
-      if (type === 'months') return date.format('MMMM')
-      return date.format('DD MMM')  
+        if (type === 'weeks') return (index + 1) + ' неделя'
+        if (type === 'months') return date.format('MMMM')
+        return date.format('DD MMM')
     }
 
     const rangeItemToMongoQuery = (date, type, index) => ({
-      name: formatInterval(date, type, index),
-      date: {
-        $gte: date.startOf( type ).toDate(),
-        $lt: date.endOf( type ).toDate()
-      }
+        name: formatInterval(date, type, index),
+        date: {
+            $gte: date.startOf(type).toDate(),
+            $lt: date.endOf(type).toDate()
+        }
     })
 
     const period = moment.range(new Date(start).toISOString(), new Date(end).toISOString())
     const listOfRanges = Array.from(period.by(interval, { step: 1 }))
-    const listOfIntervals = listOfRanges.map( (range, index) => rangeItemToMongoQuery(range, interval, index))
+    const listOfIntervals = listOfRanges.map((range, index) => rangeItemToMongoQuery(range, interval, index))
 
     // return listOfIntervals
 
     const results = []
-    for( mongoInterval of listOfIntervals) {
-      const calls = await Call.find({ account: _id, date: mongoInterval.date }).lean().exec()
-      const missed = calls.filter(({ record }) => !record )
-      const result = { name: mongoInterval.name }
-      result['Входящие'] = calls.length
-      result['Пропущенные'] = missed.length
-      results.push(result)
+    for (mongoInterval of listOfIntervals) {
+        const calls = await Call.find({ account: _id, date: mongoInterval.date }).lean().exec()
+        const missed = calls.filter(({ record }) => !record)
+        const result = { name: mongoInterval.name }
+        result['Входящие'] = calls.length
+        result['Пропущенные'] = missed.length
+        results.push(result)
     }
 
 
-    return results 
+    return results
 }
 
-module.exports = { 
-  managersLeads, 
-  statsClosed, 
-  statsInProgress, 
-  customerPortrait, 
-  statsLeadsFromTrunks,
-  fuckedLeads,
-  incomingCallsStats
+
+async function funnelAll({ userID }) {
+    const moment = require('moment')
+    const { sortBy } = require('lodash')
+
+    function getId(name) {
+        const hash = md5(name)
+        return hash.replace(/[0-9]/g, '') + hash.replace(/\D/g, '')
+    }
+
+    function todayRange() {
+        return {
+            $gte: moment().startOf('day').toISOString(),
+            $lt: moment().endOf('day').toISOString()
+        }
+    }
+
+    function convertToTimestamp(date, time = '00:00') {
+        const d = new Date(date)
+        const t = time.split(':')
+        d.setHours(t[0], t[1], 0)
+        return d.getTime()
+    }
+
+    function isToday(date) {
+        const d = moment(new Date(date))
+        const today = moment().startOf('day')
+        return d.isSame(today, 'd')
+    }
+
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    const { account: { _id, funnelSteps } } = await userById({ userID })
+
+    funnelSteps.unshift('in-progress')
+
+    const query = { account: _id, funnelStep: { $in: funnelSteps } }
+    const customers = await Customer.find(query).populate('user').select('_id name funnelStep user').lean().exec()
+
+    if (!customers || customers.length === 0) return []
+
+    const normalizedCustomers = customers
+        .map(({ _id, name, funnelStep, user }) => ({ _id, name, funnelStep, user: user.name }))
+
+    return funnelSteps.reduce((result, step) => {
+        result.push({
+            name: step,
+            id: getId(step),
+            customers: normalizedCustomers
+                .filter(customer => customer.funnelStep === step)
+        })
+        return result
+    }, [])
+}
+
+
+module.exports = {
+    managersLeads,
+    statsClosed,
+    statsInProgress,
+    customerPortrait,
+    statsLeadsFromTrunks,
+    fuckedLeads,
+    incomingCallsStats,
+    funnelAll
 }
