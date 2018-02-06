@@ -15,15 +15,33 @@ async function fuckedLeads({ userID }) {
         .find({ account: _id, user: { $exists: false }, funnelStep: 'lead' })
 
     let overMissed = 0, halfMissed = 0
+    // for (let i = 0; i < missed.length; i++) {
+    //     const badcalls = await Call.find({ customer: missed[i]._id, record: { $exists: false }, isCallback: false }).count()
+    //     const badrecalls = await Call.find({ customer: missed[i]._id, record: { $exists: false }, isCallback: true }).count()
+
+    //     if (badcalls > 0 && badrecalls === 0) {
+    //         overMissed++
+    //         missed.splice
+    //     }
+    //     if (badcalls > 0 && badrecalls > 0) {
+    //         halfMissed++
+    //     }
+    // }
+
     for (customer of missed) {
         const badcalls = await Call.find({ customer: customer._id, record: { $exists: false }, isCallback: false }).count()
         const badrecalls = await Call.find({ customer: customer._id, record: { $exists: false }, isCallback: true }).count()
 
-        if (badcalls > 0 && badrecalls === 0) overMissed++
-        if (badcalls > 0 && badrecalls > 0) halfMissed++
+        if (badcalls > 0 && badrecalls === 0) {
+            overMissed++
+
+        }
+        if (badcalls > 0 && badrecalls > 0) {
+            halfMissed++
+        }
     }
 
-    return { missed: missed.length, halfMissed, overMissed }
+    return { missed: halfMissed + overMissed, halfMissed, overMissed }
 }
 
 
