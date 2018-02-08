@@ -88,7 +88,8 @@ const customerSchema = new Schema({
         what: String,
         when: Date,
         time: String
-    }
+    },
+    callsHistory: [{ type: ObjectId, ref: 'Call' }]
 }, { strict: false })
 
 customerSchema.pre('save', function (next) {
