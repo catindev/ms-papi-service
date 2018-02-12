@@ -250,6 +250,27 @@ async function closedCustomers({ userID, filter = 'all' }) {
     return { reject, deal }
 }
 
+async function comeBackCustomer({ userID, customerID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof customerID === 'string') customerID = toObjectId(customerID)
+
+    const { account: { _id } } = await userById({ userID })
+
+    const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
+
+    if (!customer) throw new CustomError('Клиент не найден', 400)
+
+    return await Customer.findOneAndUpdate(
+        { _id: customerID, account: _id },
+        {
+            $set: {
+                funnelStep: 'in-progress',
+                lastUpdate: new Date(),
+                lastActivity: 'возврат в работу'
+            }
+        }, { new: true })
+}
+
 async function updateCustomer({ userID, customerID, body }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
@@ -497,6 +518,7 @@ module.exports = {
     customerById,
     rejectCustomer,
     dealCustomer,
+    comeBackCustomer,
     closedCustomers,
     updateCustomer,
     funnel,

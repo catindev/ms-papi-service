@@ -10,6 +10,7 @@ const {
     customerById,
     rejectCustomer,
     dealCustomer,
+    comeBackCustomer,
     closedCustomers,
     updateCustomer,
     funnel,
@@ -150,6 +151,13 @@ router.put('/customers/:customerID/deal', (request, response, next) => {
         .catch(next)
 })
 
+router.put('/customers/:customerID/comeback', (request, response, next) => {
+    const { userID, params: { customerID } } = request
+
+    comeBackCustomer({ userID, customerID })
+        .then(() => response.json({ status: 200 }))
+        .catch(next)
+})
 
 router.get('/customers/closed', (request, response, next) => {
     const { userID, query: { filter, skip } } = request
