@@ -23,7 +23,7 @@ async function fuckedLeads({ userID }) {
         if (badcalls > 0 && badrecalls > 0) halfMissed++
     }
 
-    return { missed: missed.length, halfMissed, overMissed }
+    return { missed: halfMissed + overMissed, halfMissed, overMissed }
 }
 
 

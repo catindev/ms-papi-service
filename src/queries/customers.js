@@ -232,22 +232,22 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
 }
 
 
-async function closedCustomers({ userID }) {
+async function closedCustomers({ userID, filter = 'all' }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id } } = await userById({ userID })
+    const query = { account: _id, user: userID }
 
-    const customers = await Customer.find({
-        account: _id,
-        user: userID,
-        $or: [{ funnelStep: 'reject' }, { funnelStep: 'deal' }]
-    }).lean().exec()
+    if (filter === 'all') query.$or = [{ funnelStep: 'reject' }, { funnelStep: 'deal' }]
+    if (filter === 'reject') query.funnelStep = 'reject'
+    if (filter === 'deal') query.funnelStep = 'deal'
+
+    const customers = await Customer.find(query).lean().exec()
 
     const reject = customers.filter(customer => customer.funnelStep === 'reject')
     const deal = customers.filter(customer => customer.funnelStep === 'deal')
 
     return { reject, deal }
-
 }
 
 async function updateCustomer({ userID, customerID, body }) {

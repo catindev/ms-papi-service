@@ -152,9 +152,9 @@ router.put('/customers/:customerID/deal', (request, response, next) => {
 
 
 router.get('/customers/closed', (request, response, next) => {
-    const { userID, query: { skip } } = request
+    const { userID, query: { filter, skip } } = request
 
-    closedCustomers({ userID })
+    closedCustomers({ userID, filter })
         .then(({ reject, deal }) => response.json({ status: 200, reject, deal }))
         .catch(next)
 })
