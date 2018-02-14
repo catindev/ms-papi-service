@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const { createPassword, verifyPassword, findOneSession, SignOut } = require('./queries/sessions')
+const { createPassword, verifyPassword, findOneSession, SignOut, getTokenOwner } = require('./queries/sessions')
 const { addLog, getLog, cleanLog } = require('./queries/logs')
 const {
     search,
@@ -22,7 +22,7 @@ const {
 const { getLeadsStats } = require('./queries/trunks')
 const { managersLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks, fuckedLeads, incomingCallsStats, funnelAll } = require('./queries/stats')
 const { allAccounts } = require('./queries/accounts')
-const { addPhoneNumber, removePhoneNumber, editPhoneNumber } = require('./queries/users')
+const { userById } = require('./queries/users')
 const { recentCalls } = require('./queries/calls')
 
 router.get('/', (request, response) => response.json({
@@ -53,6 +53,15 @@ router.get('/sessions/find.one', (request, response, next) => {
         })
         .catch(next)
 })
+
+router.get('/users/me', (request, response, next) => {
+    const { userID } = request
+
+    userById({ userID })
+        .then(user => response.status(200).json({ status: 200, user }))
+        .catch(next)
+})
+
 
 router.get('/accounts', (request, response, next) => {
     allAccounts()

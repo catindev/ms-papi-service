@@ -30,8 +30,14 @@ async function recentCalls({ userID }) {
         .lean()
         .exec()
 
-    if (calls.length > 0) return calls.map(
-        ({ _id, date, customer, record, isCallback, answeredBy, user }) => {
+    if (calls.length > 0) return (calls.map(
+        (call, index) => {
+            const { _id, date, customer, record, isCallback, answeredBy, user } = call
+
+            // if (!customer) {
+            //     console.log(index, call._id)
+            //     return false
+            // }
 
             // тут геморно, но из-за того что ранее менеджер не писался
             // в звонок если звонок был пропущенный. поэтому приходится 
@@ -59,7 +65,7 @@ async function recentCalls({ userID }) {
                 owner
             }
         }
-    )
+    )).filter(c => !c)
 
     return []
 }
