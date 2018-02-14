@@ -43,7 +43,7 @@ async function recentCalls({ userID }) {
                 //     :
                 //     userID.toString() === user._id.toString() ? 'you' : user.name
                 :
-                customer.user ?
+                customer && customer.user ?
                     userID.toString() === customer.user._id.toString() ? 'you' : customer.user.name
                     :
                     'lead'
