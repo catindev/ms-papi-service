@@ -11,6 +11,7 @@ const request = require('request-promise')
 const md5 = require('../utils/md5')
 const moment = require('moment')
 const { sortBy } = require('lodash')
+const { createContact } = require('./contacts')
 
 async function updateLast({ userID, customerID, lastActivity }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -95,15 +96,18 @@ async function recents({ userID, skip = 0 }) {
 
     const options = { skip, limit: 50 }
     const customers = await Customer
-        .find({ account: _id, user: userID, funnelStep: { $nin: ['lead'] }, lastActivity: { $exists: true } })
+        .find({
+            account: _id,
+            user: userID,
+            funnelStep: { $nin: ['lead'] },
+            lastActivity: { $exists: true }
+        })
         .sort('-lastUpdate')
 
     return customers
 }
 
 async function createColdLead({ userID, data }) {
-    // TODO: проверять по номеру не зареган ли такой лид уже
-
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id } } = await userById({ userID })
@@ -114,17 +118,23 @@ async function createColdLead({ userID, data }) {
 
     const trunk = await Trunk.findOne({ account: _id })
 
-
     const newCustomer = new Customer(Object.assign({}, data, {
         account: _id,
         user: userID,
         funnelStep: 'cold',
         trunk: trunk._id,
         lastUpdate: new Date(),
+        contacts: [],
         lastActivity: 'добавлен в холодные'
     }))
+    const createdLead = await newCustomer.save()
 
-    return await newCustomer.save()
+    return await createContact({
+        userID, customerID: createdLead._id, data: {
+            name: 'Основной',
+            phone: data.phones[0],
+        }
+    })
 }
 
 
@@ -508,6 +518,24 @@ async function coldCall({ userID, customerID }) {
     }
 }
 
+async function isCustomerOwner({ userID, customerID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof customerID === 'string') customerID = toObjectId(customerID)
+
+    const customer = await Customer.findOne({ _id: customerID })
+        .populate('user').exec()
+
+    if (!customer || customer === null)
+        throw new CustomError('Клиент не найден', 404)
+
+    if (!customer.user || customer.user === null)
+        throw new CustomError('Клиенту ещё не назначен менеджер', 404)
+
+    if (customer.user && customer.user._id.equals(userID)) return true
+
+    return false
+}
+
 
 module.exports = {
     search,
@@ -525,5 +553,6 @@ module.exports = {
     coldCall,
     stepDown,
     recents,
-    setTask
+    setTask,
+    isCustomerOwner
 }

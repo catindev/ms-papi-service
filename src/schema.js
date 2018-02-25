@@ -59,6 +59,12 @@ const Trunk = mongoose.model('Trunk', new Schema({
     active: { type: Boolean, default: false },
 }))
 
+const Contact = mongoose.model('Contact', new Schema({
+    account: { type: ObjectId, ref: 'Account' },
+    customer: { type: ObjectId, ref: 'Customer' },
+    name: String,
+    phone: String
+}))
 
 const customerSchema = new Schema({
     account: { type: ObjectId, ref: 'Account' },
@@ -72,6 +78,7 @@ const customerSchema = new Schema({
     phones: [String],
     notes: String,
     funnelStep: String, // lead || cold, in-progress, ...custom, deal || reject
+    contacts: [{ type: ObjectId, ref: 'Contact' }],
     deal: {
         amount: Number,
         comment: String,
@@ -90,13 +97,11 @@ const customerSchema = new Schema({
         time: String
     }
 }, { strict: false })
-
 customerSchema.pre('save', function (next) {
     this.phones = this.phones.map(phone => formatNumber(phone))
     this.lastUpdate = new Date()
     next()
 })
-
 const Customer = mongoose.model('Customer', customerSchema)
 
 
@@ -106,6 +111,7 @@ const Call = mongoose.model('Call', new Schema({
     trunk: { type: ObjectId, ref: 'Trunk' },
     user: { type: ObjectId, ref: 'User' },
     answeredBy: { type: ObjectId, ref: 'User' },
+    contact: { type: ObjectId, ref: 'Contact' },
     date: { type: Date, default: new Date() },
     record: String,
     duration: {
@@ -132,7 +138,8 @@ module.exports = {
     User,
     Session,
     Trunk,
-    Call,
+    Contact,
     Customer,
+    Call,
     Param
 }

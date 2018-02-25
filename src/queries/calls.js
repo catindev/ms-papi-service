@@ -30,7 +30,7 @@ async function recentCalls({ userID }) {
         .lean()
         .exec()
 
-    if (calls.length > 0) return calls.map(
+    if (calls.length > 0) return (calls.map(
         (call, index) => {
             const { _id, date, customer, record, isCallback, answeredBy, user } = call
 
@@ -65,7 +65,7 @@ async function recentCalls({ userID }) {
                 owner
             }
         }
-    )
+    )).filter(c => !!c)
 
     return []
 }

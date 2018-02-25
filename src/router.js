@@ -17,13 +17,18 @@ const {
     coldCall,
     stepDown,
     recents,
-    setTask
+    setTask,
+    isCustomerOwner
 } = require('./queries/customers')
 const { getLeadsStats } = require('./queries/trunks')
 const { managersLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks, fuckedLeads, incomingCallsStats, funnelAll } = require('./queries/stats')
 const { allAccounts } = require('./queries/accounts')
 const { userById } = require('./queries/users')
 const { recentCalls } = require('./queries/calls')
+const {
+    createContact, getContacts, removeContact,
+    updateContact, callbackToContact
+} = require('./queries/contacts')
 
 router.get('/', (request, response) => response.json({
     name: 'ms-papi-service',
@@ -244,6 +249,14 @@ router.get('/customers/:customerID/cold.call', (request, resp, next) => {
         .catch(next)
 })
 
+router.get('/customers/:customerID/isowner', (request, response, next) => {
+    const { userID, params: { customerID } } = request
+
+    isCustomerOwner({ userID, customerID })
+        .then(isOwner => response.json({ status: 200, isOwner }))
+        .catch(next)
+})
+
 
 router.get('/customers/:customerID', (request, response, next) => {
     const { userID, params: { customerID }, query: { params } } = request
@@ -261,6 +274,42 @@ router.put('/customers/:customerID', (request, response, next) => {
         .catch(next)
 })
 
+/* Контакты */
+router.get('/customers/:customerID/contacts', (request, response, next) => {
+    const { userID, params: { customerID }, query: { populate } } = request
+
+    getContacts({ userID, customerID, populate })
+        .then(contacts => response.json({ status: 200, contacts }))
+        .catch(next)
+})
+
+router.post('/customers/:customerID/contacts', (request, response, next) => {
+    const { userID, params: { customerID }, body } = request
+
+    // создаёт контакт. возвращает клиента с контактами        
+    createContact({ userID, customerID, data: body })
+        .then(customer => response.json({ status: 200, customer }))
+        .catch(next)
+})
+
+router.delete('/contacts/:contactID', (request, response, next) => {
+    const { userID, params: { contactID } } = request
+
+    removeContact({ userID, contactID })
+        .then(() => response.json({ status: 200 }))
+        .catch(next)
+})
+
+router.put('/contacts/:contactID', (request, response, next) => {
+    const { userID, params: { contactID }, body } = request
+
+    updateContact({ userID, contactID, data: body })
+        .then(() => response.json({ status: 200 }))
+        .catch(next)
+})
+
+// журнал звонков в админку
+// TODO: выпилить в АПИ админки
 router.get('/log', (request, response, next) => {
     getLog({})
         .then(items => response.json({ status: 200, items }))
@@ -274,7 +323,7 @@ router.post('/log/clean', (request, response, next) => {
 })
 
 
-// !!! чинить
+// !!! чинить !!! тут валится ексепшн непонятный. апи для графика входящих
 router.get('/stats/calls', (request, response, next) => {
     const { userID, query: { start, end, interval } } = request
     incomingCallsStats({ userID, start, end, interval })
