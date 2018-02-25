@@ -132,7 +132,7 @@ async function createColdLead({ userID, data }) {
     return await createContact({
         userID, customerID: createdLead._id, data: {
             name: 'Основной',
-            phone: data.phones[0],
+            phone: createdLead.phones[0],
         }
     })
 }
