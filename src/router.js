@@ -308,6 +308,14 @@ router.put('/contacts/:contactID', (request, response, next) => {
         .catch(next)
 })
 
+router.get('/contacts/:contactID/callback', (request, response, next) => {
+    const { userID, params: { contactID } } = request
+
+    callbackToContact({ userID, contactID })
+        .then(callback => response.json({ status: 200, callback }))
+        .catch(next)
+})
+
 // журнал звонков в админку
 // TODO: выпилить в АПИ админки
 router.get('/log', (request, response, next) => {
