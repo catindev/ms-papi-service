@@ -14,8 +14,8 @@ async function createContact({ userID, customerID, data }) {
     const { account: { _id } } = await userById({ userID })
 
     data.phone = formatNumber(data.phone)
-    const contact = await Contact.findOne({ account: _id, phone: data.phone })
-    if (contact) throw new CustomError(`Такой номер уже сохранён под именем ${contact.name}`, 400)
+    const contact = await Contact.findOne({ account: _id, phone: data.phone }).populate('customer').exec()
+    if (contact) throw new CustomError(`Такой номер уже сохранён под именем ${contact.name} у клиента ${contact.customer.name}`, 400)
 
     const newContact = new Contact(Object.assign({}, data, {
         account: _id, customer: customerID
