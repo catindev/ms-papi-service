@@ -1,4 +1,4 @@
-const { Call, Account, User, Customer } = require('../schema')
+const { Call, Account, User, Customer, Contact } = require('../schema')
 const toObjectId = require('mongoose').Types.ObjectId
 const CustomError = require('../utils/error')
 const { userById } = require('./users')
@@ -8,6 +8,7 @@ const humanDate = require('../utils/humanDate')
 
 const populateQuery = [
     { path: 'customer', model: 'Customer' },
+    { path: 'contact', model: 'Contact' },
     { path: 'user', model: 'User' },
     {
         path: 'customer', model: 'Customer',
@@ -32,7 +33,9 @@ async function recentCalls({ userID }) {
 
     if (calls.length > 0) return (calls.map(
         (call, index) => {
-            const { _id, date, customer, record, isCallback, answeredBy, user } = call
+            const {
+                _id, date, customer, contact, record, isCallback, answeredBy, user
+            } = call
 
             if (!customer) {
                 console.log(index, call._id)
@@ -60,6 +63,7 @@ async function recentCalls({ userID }) {
                 _id,
                 date: humanDate(date),
                 customer: { id: customer._id, name: customer.name, funnelStep: customer.funnelStep },
+                contact: contact ? contact.name : false,
                 missed: !record,
                 isCallback,
                 owner
