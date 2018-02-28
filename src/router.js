@@ -26,7 +26,7 @@ const { allAccounts } = require('./queries/accounts')
 const { userById } = require('./queries/users')
 const { recentCalls } = require('./queries/calls')
 const {
-    createContact, getContacts, removeContact,
+    createContact, getContacts, getContact, removeContact,
     updateContact, callbackToContact
 } = require('./queries/contacts')
 
@@ -291,6 +291,15 @@ router.post('/customers/:customerID/contacts', (request, response, next) => {
         .then(customer => response.json({ status: 200, customer }))
         .catch(next)
 })
+
+router.get('/contacts/:contactID', (request, response, next) => {
+    const { userID, params: { contactID }, query: { populate } } = request
+
+    getContact({ userID, contactID, populate })
+        .then(contact => response.json({ status: 200, contact }))
+        .catch(next)
+})
+
 
 router.delete('/contacts/:contactID', (request, response, next) => {
     const { userID, params: { contactID } } = request

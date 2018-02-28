@@ -38,6 +38,15 @@ async function getContacts({ userID, customerID, populate = '' }) {
     return await Contact.find({ account: _id, customer: customerID }).populate(populate).lean().exec()
 }
 
+async function getContact({ userID, contactID, populate = '' }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof contactID === 'string') contactID = toObjectId(contactID)
+
+    const { account: { _id } } = await userById({ userID })
+
+    return await Contact.findOne({ account: _id, _id: contactID }).populate(populate).lean().exec()
+}
+
 async function removeContact({ userID, contactID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof contactID === 'string') contactID = toObjectId(contactID)
@@ -154,7 +163,7 @@ async function setContacts4All() {
 
 
 module.exports = {
-    createContact, getContacts, removeContact,
+    createContact, getContacts, getContact, removeContact,
     updateContact, callbackToContact,
     setContacts4All
 }
