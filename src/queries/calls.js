@@ -64,6 +64,7 @@ async function recentCalls({ userID }) {
                 date: humanDate(date),
                 customer: { id: customer._id, name: customer.name, funnelStep: customer.funnelStep },
                 contact: contact ? contact.name : false,
+                contacts: customer.contacts.length,
                 missed: !record,
                 isCallback,
                 owner

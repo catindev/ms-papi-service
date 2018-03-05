@@ -447,7 +447,9 @@ async function call({ userID, customerID }) {
 
     addLog({
         who: userID, type: 'callback', what: 'запрос на коллбек',
-        payload: {}
+        payload: {
+
+        }
     })
 
     // if (customer.user && !customer.user._id.equals(userID)) {
@@ -456,21 +458,26 @@ async function call({ userID, customerID }) {
 
     // if (!customer.user) await Customer.update({ _id: customerID }, { user: userID })
 
+    const qs = {
+        cn: customer.phones[0].replace('+7', '8'),
+        un: phones[0].replace('+7', '8'),
+        tr: name === 'Calibry' ? '87780218789' : customer.trunk.phone.replace('+7', '8'),
+        call_id: 'ms3'
+    }
+
     const options = {
         uri: 'http://185.22.65.50/call.php',
-        qs: {
-            cn: customer.phones[0].replace('+7', '8'),
-            un: phones[0].replace('+7', '8'),
-            tr: name === 'Calibry' ? '87780218789' : customer.trunk.phone.replace('+7', '8'),
-            call_id: 'ms3'
-        },
-        headers: { 'User-Agent': 'Request-Promise' },
+        qs,
+        headers: { 'User-Agent': 'Mindsales-CRM' },
         json: true
     }
 
-    // await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
-
     const response = await request(options)
+
+    addLog({
+        who: userID, type: 'callback', what: 'запрос на коллбек',
+        payload: { qs, response }
+    })
 
     return {
         params: {
@@ -491,22 +498,27 @@ async function coldCall({ userID, customerID }) {
         .findOne({ _id: customerID, user: userID, account: _id })
         .populate('trunk').exec()
 
+    const qs = {
+        cn: customer.phones[0].replace('+7', '8'),
+        un: phones[0].replace('+7', '8'),
+        tr: customer.trunk.phone.replace('+7', '8'),
+        call_id: 'cold_call',
+        secret_key: '2c22d5c2ed37ea03db53ff931e7a9cf6'
+    }
+
     const options = {
         uri: 'http://185.22.65.50/cold_call.php',
-        qs: {
-            cn: customer.phones[0].replace('+7', '8'),
-            un: phones[0].replace('+7', '8'),
-            tr: customer.trunk.phone.replace('+7', '8'),
-            call_id: 'cold_call',
-            secret_key: '2c22d5c2ed37ea03db53ff931e7a9cf6'
-        },
+        qs,
         headers: { 'User-Agent': 'Request-Promise' },
         json: true
     }
 
-    await updateLast({ userID, customerID, lastActivity: 'исходящий звонок' })
-
     const response = await request(options)
+
+    addLog({
+        who: userID, type: 'callback', what: 'запрос на хол. коллбек',
+        payload: { qs, response }
+    })
 
     return {
         params: {
