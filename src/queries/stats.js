@@ -184,6 +184,43 @@ async function customerPortrait({ userID, start, end }) {
 }
 
 
+async function statsLeadsFromTrunks2({ userID, start, end }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    const { account: { _id } } = await userById({ userID })
+    const results = []
+    const query = { funnelStep: { $ne: 'cold' } }
+
+    if (start || end) {
+        query.created = {}
+        if (start) query.created.$gte = start
+        if (end) query.created.$lt = end
+    }
+
+    const trunks = await Trunk.find({ account: _id, active: true })
+    for (let trunk of trunks) {
+        query.trunk = trunk._id
+        const customers = await Customer.find(query)
+        // console.log('Query', query, 'search', customers.length)
+
+        if (customers && customers.length > 0) {
+            const deals = customers.filter(customer => customer.funnelStep === 'deal')
+            const rejects = customers.filter(customer => customer.funnelStep === 'rejects')
+            const inProgress = customers.length - deals.length - rejects.length;
+            // const conversion = Math.round((deals.length / customers.length) * 100)
+            results.push({
+                name: trunk.name,
+                customers: customers.length,
+                deals: deals.length,
+                rejects: rejects.length,
+                inProgress
+            })
+        }
+    }
+
+    return results
+}
+
+
 async function statsLeadsFromTrunks({ userID, start, end }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     const { account: { _id } } = await userById({ userID })
@@ -200,7 +237,8 @@ async function statsLeadsFromTrunks({ userID, start, end }) {
     for (let trunk of trunks) {
         query.trunk = trunk._id
         const customers = await Customer.find(query).count()
-        if (customers && customers > 0) results.push({ name: trunk.name, customers })
+        if (customers && customers > 0)
+            results.push({ name: trunk.name, customers })
     }
 
     return results
@@ -312,5 +350,6 @@ module.exports = {
     statsLeadsFromTrunks,
     fuckedLeads,
     incomingCallsStats,
-    funnelAll
+    funnelAll,
+    statsLeadsFromTrunks2
 }

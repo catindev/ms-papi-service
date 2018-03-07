@@ -21,7 +21,11 @@ const {
     isCustomerOwner
 } = require('./queries/customers')
 const { getLeadsStats } = require('./queries/trunks')
-const { managersLeads, statsClosed, statsInProgress, customerPortrait, statsLeadsFromTrunks, fuckedLeads, incomingCallsStats, funnelAll } = require('./queries/stats')
+const {
+    managersLeads, statsClosed, statsInProgress,
+    customerPortrait, statsLeadsFromTrunks, fuckedLeads,
+    incomingCallsStats, funnelAll, statsLeadsFromTrunks2
+} = require('./queries/stats')
 const { allAccounts } = require('./queries/accounts')
 const { userById } = require('./queries/users')
 const { recentCalls } = require('./queries/calls')
@@ -379,6 +383,13 @@ router.get('/stats/portrait', (request, response, next) => {
 router.get('/stats/trunks', (request, response, next) => {
     const { userID, query: { start, end } } = request
     statsLeadsFromTrunks({ userID, start, end })
+        .then(stats => response.json({ status: 200, stats }))
+        .catch(next)
+})
+
+router.get('/v2/stats/trunks', (request, response, next) => {
+    const { userID, query: { start, end } } = request
+    statsLeadsFromTrunks2({ userID, start, end })
         .then(stats => response.json({ status: 200, stats }))
         .catch(next)
 })
