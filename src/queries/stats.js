@@ -395,6 +395,21 @@ async function dealCustomersForStats({ userID, start, end }) {
     return await Customer.find(query).lean().exec()
 }
 
+async function leadCustomersForStats({ userID, start, end }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id } } = await userById({ userID })
+    const query = { account: _id, funnelStep: 'lead' }
+
+    if (start || end) {
+        query.created = {}
+        if (start) query.created.$gte = start
+        if (end) query.created.$lt = end
+    }
+
+    return await Customer.find(query).lean().exec()
+}
+
 module.exports = {
     managersLeads,
     statsClosed,
@@ -405,5 +420,9 @@ module.exports = {
     incomingCallsStats,
     funnelAll,
     statsLeadsFromTrunks2,
-    rejectCustomersForStats, dealCustomersForStats,
+
+    // profiles
+    rejectCustomersForStats,
+    dealCustomersForStats,
+    leadCustomersForStats,
 }
