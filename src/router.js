@@ -371,7 +371,7 @@ router.get('/stats/reject/profiles', (request, response, next) => {
     const { userID, query: { start, end } } = request
 
     rejectCustomersForStats({ userID, start, end })
-        .then(stats => response.json({ status: 200, stats }))
+        .then(customers => response.json({ status: 200, customers }))
         .catch(next)
 })
 
@@ -379,7 +379,7 @@ router.get('/stats/deal/profiles', (request, response, next) => {
     const { userID, query: { start, end } } = request
 
     dealCustomersForStats({ userID, start, end })
-        .then(stats => response.json({ status: 200, stats }))
+        .then(customers => response.json({ status: 200, customers }))
         .catch(next)
 })
 
