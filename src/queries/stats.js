@@ -341,6 +341,59 @@ async function funnelAll({ userID }) {
     }, [])
 }
 
+async function closedCustomersStats({ userID, filter = '', start, end }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id } } = await userById({ userID })
+    const query = { account: _id, funnelStep: filter }
+
+    if ((start || end) && filter === 'reject') {
+        if (start) query['reject.date'] = { $gte: start }
+        if (end) query['reject.date'] = { $lt: end }
+    }
+
+    if ((start || end) && filter === 'deal') {
+        if (start) query['deal.date'] = { $gte: start }
+        if (end) query['deal.date'] = { $lt: end }
+    }
+
+    const customers = await Customer.find(query).lean().exec()
+
+    const reject = customers.filter(customer => customer.funnelStep === 'reject')
+    const deal = customers.filter(customer => customer.funnelStep === 'deal')
+
+    return { reject, deal }
+}
+
+async function rejectCustomersForStats({ userID, start, end }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id } } = await userById({ userID })
+    const query = { account: _id, funnelStep: 'reject' }
+
+    if (start || end) {
+        query['reject.date'] = {}
+        if (start) query['reject.date'].$gte = start
+        if (end) query['reject.date'].$lt = end
+    }
+
+    return await Customer.find(query).lean().exec()
+}
+
+async function dealCustomersForStats({ userID, start, end }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id } } = await userById({ userID })
+    const query = { account: _id, funnelStep: 'deal' }
+
+    if (start || end) {
+        query['deal.date'] = {}
+        if (start) query['deal.date'].$gte = start
+        if (end) query['deal.date'].$lt = end
+    }
+
+    return await Customer.find(query).lean().exec()
+}
 
 module.exports = {
     managersLeads,
@@ -351,5 +404,6 @@ module.exports = {
     fuckedLeads,
     incomingCallsStats,
     funnelAll,
-    statsLeadsFromTrunks2
+    statsLeadsFromTrunks2,
+    rejectCustomersForStats, dealCustomersForStats,
 }
