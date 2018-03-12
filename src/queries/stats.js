@@ -204,7 +204,7 @@ async function statsLeadsFromTrunks2({ userID, start, end }) {
 
         if (customers && customers.length > 0) {
             const deals = customers.filter(customer => customer.funnelStep === 'deal')
-            const rejects = customers.filter(customer => customer.funnelStep === 'rejects')
+            const rejects = customers.filter(customer => customer.funnelStep === 'reject')
             const inProgress = customers.length - deals.length - rejects.length;
             // const conversion = Math.round((deals.length / customers.length) * 100)
             results.push({
