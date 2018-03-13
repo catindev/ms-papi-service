@@ -192,25 +192,26 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
     const { funnelStep, user } = customer
-    const reject = {
-        reason,
-        comment,
-        previousStep: funnelStep,
-        date: new Date()
+    const query = {
+        $set: {
+            funnelStep: 'reject',
+            lastUpdate: new Date(),
+            lastActivity: 'оформлен отказ',
+            reject: {
+                reason,
+                comment,
+                previousStep: funnelStep,
+                date: new Date()
+            },
+            user: user ? user : userID
+        }
     }
-    if (name) reject.name = name
+
+    if (name) query.$set.name = name
 
     return await Customer.findOneAndUpdate(
-        { _id: customerID, account: _id },
-        {
-            $set: {
-                funnelStep: 'reject',
-                lastUpdate: new Date(),
-                lastActivity: 'оформлен отказ',
-                reject,
-                user: user ? user : userID
-            }
-        }, { new: true })
+        { _id: customerID, account: _id }, query, { new: true }
+    )
 }
 
 

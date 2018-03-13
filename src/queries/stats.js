@@ -365,8 +365,10 @@ async function closedCustomersStats({ userID, filter = '', start, end }) {
     return { reject, deal }
 }
 
-async function rejectCustomersForStats({ userID, start, end }) {
+async function rejectCustomersForStats({ userID, start, end, trunk = false, user = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof trunk === 'string') trunk = toObjectId(trunk)
+    if (typeof user === 'string') user = toObjectId(user)
 
     const { account: { _id } } = await userById({ userID })
     const query = { account: _id, funnelStep: 'reject' }
@@ -377,11 +379,16 @@ async function rejectCustomersForStats({ userID, start, end }) {
         if (end) query['reject.date'].$lt = end
     }
 
+    if (trunk) query.trunk = trunk
+    if (user) query.user = user
+
     return await Customer.find(query).lean().exec()
 }
 
-async function dealCustomersForStats({ userID, start, end }) {
+async function dealCustomersForStats({ userID, start, end, trunk = false, user = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof trunk === 'string') trunk = toObjectId(trunk)
+    if (typeof user === 'string') user = toObjectId(user)
 
     const { account: { _id } } = await userById({ userID })
     const query = { account: _id, funnelStep: 'deal' }
@@ -391,6 +398,9 @@ async function dealCustomersForStats({ userID, start, end }) {
         if (start) query['deal.date'].$gte = start
         if (end) query['deal.date'].$lt = end
     }
+
+    if (trunk) query.trunk = trunk
+    if (user) query.user = user
 
     return await Customer.find(query).lean().exec()
 }

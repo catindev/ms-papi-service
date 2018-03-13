@@ -18,4 +18,12 @@ async function updateUser({ userID, data }) {
     return User.update({ _id: userID }, data)
 }
 
-module.exports = { userById }
+async function getUsers({ userID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id } } = await userById({ userID })
+
+    return User.find({ account: _id })
+}
+
+module.exports = { userById, getUsers }

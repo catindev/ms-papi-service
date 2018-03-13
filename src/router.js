@@ -20,7 +20,7 @@ const {
     setTask,
     isCustomerOwner
 } = require('./queries/customers')
-const { getLeadsStats } = require('./queries/trunks')
+const { getLeadsStats, getTrunks } = require('./queries/trunks')
 const {
     managersLeads, statsClosed, statsInProgress,
     customerPortrait, statsLeadsFromTrunks, fuckedLeads,
@@ -28,7 +28,7 @@ const {
     rejectCustomersForStats, dealCustomersForStats, leadCustomersForStats
 } = require('./queries/stats')
 const { allAccounts } = require('./queries/accounts')
-const { userById } = require('./queries/users')
+const { userById, getUsers } = require('./queries/users')
 const { recentCalls } = require('./queries/calls')
 const {
     createContact, getContacts, getContact, removeContact,
@@ -69,6 +69,14 @@ router.get('/users/me', (request, response, next) => {
 
     userById({ userID })
         .then(user => response.status(200).json({ status: 200, user }))
+        .catch(next)
+})
+
+router.get('/users', (request, response, next) => {
+    const { userID } = request
+
+    getUsers({ userID })
+        .then(items => response.status(200).json({ status: 200, items }))
         .catch(next)
 })
 
@@ -144,14 +152,14 @@ router.get('/customers', (request, response, next) => {
 
 
 router.put('/customers/:customerID/reject', (request, response, next) => {
-    const { userID, params: { customerID }, body: { comment, reason } } = request
+    const { userID, params: { customerID }, body: { comment, reason, name } } = request
 
     if (!reason) return response.status(400).json({
         status: 400,
         message: 'Заполните причину отказа'
     })
 
-    rejectCustomer({ userID, customerID, comment, reason })
+    rejectCustomer({ userID, customerID, comment, reason, name })
         .then(() => response.json({ status: 200 }))
         .catch(next)
 })
@@ -344,6 +352,13 @@ router.post('/log/clean', (request, response, next) => {
         .catch(next)
 })
 
+// для фильтров в статистике
+router.get('/trunks', (request, response, next) => {
+    const { userID } = request
+    getTrunks({ userID })
+        .then(items => response.json({ status: 200, items }))
+        .catch(next)
+})
 
 // !!! чинить !!! тут валится ексепшн непонятный. апи для графика входящих
 router.get('/stats/calls', (request, response, next) => {
