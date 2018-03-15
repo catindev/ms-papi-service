@@ -2,7 +2,7 @@ const toObjectId = require('mongoose').Types.ObjectId
 const { Account, Customer, User, Param, Trunk, Call } = require('../schema')
 const CustomError = require('../utils/error')
 const { userById, getUsers } = require('./users')
-const { findIndex, isArray } = require('lodash')
+const { findIndex, isArray, orderBy } = require('lodash')
 const md5 = require('../utils/md5')
 
 // TODO: проверять на босса
@@ -432,7 +432,7 @@ async function customersByUsers({ userID }) {
         result.push({ user: user.name, customers })
     }
 
-    return result
+    return orderBy(result, ['customer'], ['desc'])
 }
 
 
