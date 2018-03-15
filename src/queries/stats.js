@@ -449,7 +449,7 @@ async function usersStats({ userID }) {
         result.push({ user: user.name, deals, rejects, customers: deals + rejects })
     }
 
-    return orderBy(result, ['customers'], ['desc'])
+    return orderBy(result, ['deals'], ['desc'])
 }
 
 module.exports = {
