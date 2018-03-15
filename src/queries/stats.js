@@ -217,7 +217,7 @@ async function statsLeadsFromTrunks2({ userID, start, end }) {
         }
     }
 
-    return orderBy(result, ['customers'], ['desc'])
+    return orderBy(results, ['customers'], ['desc'])
 }
 
 
