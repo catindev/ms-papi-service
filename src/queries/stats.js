@@ -446,7 +446,12 @@ async function usersStats({ userID }) {
     for (let user of users) {
         const deals = await Customer.find({ account: _id, user: user._id, funnelStep: 'deal' }).count()
         const rejects = await Customer.find({ account: _id, user: user._id, funnelStep: 'reject' }).count()
-        result.push({ user: user.name, deals, rejects, customers: deals + rejects })
+        const customers = deals + rejects
+        if (customers > 0) result.push({
+            user: user.name,
+            deals, rejects,
+            customers
+        })
     }
 
     return orderBy(result, ['deals'], ['desc'])
