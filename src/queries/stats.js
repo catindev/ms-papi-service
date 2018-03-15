@@ -454,7 +454,7 @@ async function usersStats({ userID }) {
         })
     }
 
-    return orderBy(result, ['deals'], ['desc'])
+    return orderBy(result, ['deals', 'customers'], ['desc'])
 }
 
 module.exports = {
