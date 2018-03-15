@@ -217,7 +217,7 @@ async function statsLeadsFromTrunks2({ userID, start, end }) {
         }
     }
 
-    return results
+    return orderBy(result, ['customers'], ['desc'])
 }
 
 
@@ -454,7 +454,7 @@ async function usersStats({ userID }) {
         })
     }
 
-    return orderBy(result, ['deals', 'customers'], ['desc'])
+    return orderBy(result, ['customers', 'deals'], ['desc'])
 }
 
 module.exports = {
