@@ -1,7 +1,7 @@
 const toObjectId = require('mongoose').Types.ObjectId
 const { Account, Customer, User, Param, Trunk, Call } = require('../schema')
 const CustomError = require('../utils/error')
-const { userById } = require('./users')
+const { userById, getUsers } = require('./users')
 const { findIndex, isArray } = require('lodash')
 const md5 = require('../utils/md5')
 
@@ -420,6 +420,38 @@ async function leadCustomersForStats({ userID, start, end }) {
     return await Customer.find(query).lean().exec()
 }
 
+async function customersByUsers({ userID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id } } = await userById({ userID })
+    const users = await getUsers({ userID })
+
+    const result = []
+    for (let user of users) {
+        const customers = await Customer.find({ account: _id, user: user._id }).count()
+        result.push({ user: user.name, customers })
+    }
+
+    return result
+}
+
+
+async function usersStats({ userID }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+
+    const { account: { _id } } = await userById({ userID })
+    const users = await getUsers({ userID })
+
+    const result = []
+    for (let user of users) {
+        const deals = await Customer.find({ account: _id, user: user._id, funnelStep: 'deal' }).count()
+        const rejects = await Customer.find({ account: _id, user: user._id, funnelStep: 'reject' }).count()
+        result.push({ user: user.name, deals, rejects })
+    }
+
+    return result
+}
+
 module.exports = {
     managersLeads,
     statsClosed,
@@ -435,4 +467,7 @@ module.exports = {
     rejectCustomersForStats,
     dealCustomersForStats,
     leadCustomersForStats,
+
+    // users
+    usersStats, customersByUsers
 }

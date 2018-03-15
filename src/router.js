@@ -25,7 +25,8 @@ const {
     managersLeads, statsClosed, statsInProgress,
     customerPortrait, statsLeadsFromTrunks, fuckedLeads,
     incomingCallsStats, funnelAll, statsLeadsFromTrunks2,
-    rejectCustomersForStats, dealCustomersForStats, leadCustomersForStats
+    rejectCustomersForStats, dealCustomersForStats, leadCustomersForStats,
+    usersStats, customersByUsers
 } = require('./queries/stats')
 const { allAccounts } = require('./queries/accounts')
 const { userById, getUsers } = require('./queries/users')
@@ -445,6 +446,22 @@ router.get('/stats/funnel', (request, response, next) => {
     const { userID } = request
     funnelAll({ userID })
         .then(stats => response.json({ status: 200, stats }))
+        .catch(next)
+})
+
+router.get('/stats/users', (request, response, next) => {
+    const { userID } = request
+
+    customersByUsers({ userID })
+        .then(stats => response.status(200).json({ status: 200, stats }))
+        .catch(next)
+})
+
+router.get('/stats/users/details', (request, response, next) => {
+    const { userID } = request
+
+    usersStats({ userID })
+        .then(stats => response.status(200).json({ status: 200, stats }))
         .catch(next)
 })
 
