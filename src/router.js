@@ -384,17 +384,17 @@ router.get('/stats/closed', (request, response, next) => {
 })
 
 router.get('/stats/reject/profiles', (request, response, next) => {
-    const { userID, query: { start, end } } = request
+    const { userID, query: { start, end, manager, trunk } } = request
 
-    rejectCustomersForStats({ userID, start, end })
+    rejectCustomersForStats({ userID, start, end, manager, trunk })
         .then(customers => response.json({ status: 200, customers }))
         .catch(next)
 })
 
 router.get('/stats/deal/profiles', (request, response, next) => {
-    const { userID, query: { start, end } } = request
+    const { userID, query: { start, end, manager, trunk } } = request
 
-    dealCustomersForStats({ userID, start, end })
+    dealCustomersForStats({ userID, start, end, manager, trunk })
         .then(customers => response.json({ status: 200, customers }))
         .catch(next)
 })
@@ -443,8 +443,8 @@ router.get('/stats/leads/fucked', (request, response, next) => {
 })
 
 router.get('/stats/funnel', (request, response, next) => {
-    const { userID } = request
-    funnelAll({ userID })
+    const { userID, query: { manager } } = request
+    funnelAll({ userID, manager })
         .then(stats => response.json({ status: 200, stats }))
         .catch(next)
 })
@@ -458,9 +458,9 @@ router.get('/stats/users', (request, response, next) => {
 })
 
 router.get('/stats/users/details', (request, response, next) => {
-    const { userID } = request
+    const { userID, query: { start, end } } = request
 
-    usersStats({ userID })
+    usersStats({ userID, start, end })
         .then(stats => response.status(200).json({ status: 200, stats }))
         .catch(next)
 })

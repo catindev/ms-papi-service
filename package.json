@@ -34,6 +34,7 @@
     "moment": "^2.19.4",
     "moment-range": "^3.1.0",
     "moment-timezone": "^0.5.14",
+    "mongo-dql": "^1.0.0",
     "mongoose": "^4.11.12",
     "mongoose-ttl": "^0.0.3",
     "raven": "^2.1.2",

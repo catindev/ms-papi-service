@@ -655,6 +655,10 @@ moment-timezone@^0.5.14:
   version "2.20.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.20.1.tgz#d6eb1a46cbcc14a2b2f9434112c1ff8907f313fd"
 
+mongo-dql@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/mongo-dql/-/mongo-dql-1.0.0.tgz#0397f2823b29ec165adf6eced06fd7b6b6a50cd6"
+
 mongodb-core@2.1.18:
   version "2.1.18"
   resolved "https://registry.yarnpkg.com/mongodb-core/-/mongodb-core-2.1.18.tgz#4c46139bdf3a1f032ded91db49f38eec01659050"

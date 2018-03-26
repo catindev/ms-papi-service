@@ -4,6 +4,7 @@ const CustomError = require('../utils/error')
 const { userById, getUsers } = require('./users')
 const { findIndex, isArray, orderBy, sortBy } = require('lodash')
 const md5 = require('../utils/md5')
+const humanDate = require('../utils/humanDate')
 
 // TODO: проверять на босса
 
@@ -288,7 +289,7 @@ async function incomingCallsStats({ userID, start, end, interval }) {
 }
 
 
-async function funnelAll({ userID }) {
+async function funnelAll({ userID, manager = false }) {
     const moment = require('moment')
     const { sortBy } = require('lodash')
 
@@ -318,11 +319,13 @@ async function funnelAll({ userID }) {
     }
 
     if (typeof userID === 'string') userID = toObjectId(userID)
+    if (manager && typeof manager === 'string') manager = toObjectId(manager)
     const { account: { _id, funnelSteps } } = await userById({ userID })
 
     funnelSteps.unshift('in-progress')
 
     const query = { account: _id, funnelStep: { $in: funnelSteps } }
+    manager && (query.user = manager)
     const customers = await Customer.find(query).populate('user').select('_id name funnelStep user').lean().exec()
 
     if (!customers || customers.length === 0) return []
@@ -365,10 +368,10 @@ async function closedCustomersStats({ userID, filter = '', start, end }) {
     return { reject, deal }
 }
 
-async function rejectCustomersForStats({ userID, start, end, trunk = false, user = false }) {
+async function rejectCustomersForStats({ userID, start, end, trunk = false, manager = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof trunk === 'string') trunk = toObjectId(trunk)
-    if (typeof user === 'string') user = toObjectId(user)
+    if (typeof manager === 'string') manager = toObjectId(manager)
 
     const { account: { _id } } = await userById({ userID })
     const query = { account: _id, funnelStep: 'reject' }
@@ -380,15 +383,22 @@ async function rejectCustomersForStats({ userID, start, end, trunk = false, user
     }
 
     if (trunk) query.trunk = trunk
-    if (user) query.user = user
+    if (manager) query.user = manager
 
-    return await Customer.find(query).lean().exec()
+    const customers = await Customer.find(query).populate('user').lean().exec()
+
+    return customers.map(({ name, reject, user, _id }) => ({
+        _id, name,
+        reason: reject.reason === 'Другое' ? reject.comment || reject.reason : reject.reason,
+        date: humanDate(reject.date),
+        user: user.name
+    }))
 }
 
-async function dealCustomersForStats({ userID, start, end, trunk = false, user = false }) {
+async function dealCustomersForStats({ userID, start, end, trunk = false, manager = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof trunk === 'string') trunk = toObjectId(trunk)
-    if (typeof user === 'string') user = toObjectId(user)
+    if (typeof manager === 'string') manager = toObjectId(manager)
 
     const { account: { _id } } = await userById({ userID })
     const query = { account: _id, funnelStep: 'deal' }
@@ -400,7 +410,7 @@ async function dealCustomersForStats({ userID, start, end, trunk = false, user =
     }
 
     if (trunk) query.trunk = trunk
-    if (user) query.user = user
+    if (manager) query.user = manager
 
     return await Customer.find(query).lean().exec()
 }
@@ -428,7 +438,12 @@ async function customersByUsers({ userID }) {
 
     const result = []
     for (let user of users) {
-        const customers = await Customer.find({ account: _id, user: user._id }).count()
+        const customers = await Customer
+            .find({
+                account: _id, user: user._id,
+                funnelStep: { $nin: ['lead', 'cold', 'deal', 'reject'] }
+            })
+            .count()
         result.push({ user: user.name, customers })
     }
 
@@ -436,17 +451,35 @@ async function customersByUsers({ userID }) {
 }
 
 
-async function usersStats({ userID }) {
+async function usersStats({ userID, start, end }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id } } = await userById({ userID })
+
+    function setPeriod({ query, start, end }) {
+        const clone = JSON.parse(JSON.stringify(query))
+        if (start || end) {
+            clone.created = {}
+            if (start) clone.created.$gte = start
+            if (end) clone.created.$lt = end
+        }
+        return clone
+    }
+
     const users = await getUsers({ userID })
 
     const result = []
     for (let user of users) {
-        const deals = await Customer.find({ account: _id, user: user._id, funnelStep: 'deal' }).count()
-        const rejects = await Customer.find({ account: _id, user: user._id, funnelStep: 'reject' }).count()
+        let dealsQuery = { account: _id, user: user._id, funnelStep: 'deal' }
+        if (start || end) dealsQuery = setPeriod({ query: dealsQuery, start, end })
+        const deals = await Customer.find(dealsQuery).count()
+
+        let rejectsQuery = { account: _id, user: user._id, funnelStep: 'reject' }
+        if (start || end) rejectsQuery = setPeriod({ query: rejectsQuery, start, end })
+        const rejects = await Customer.find(rejectsQuery).count()
+
         const customers = deals + rejects
+
         if (customers > 0) result.push({
             user: user.name,
             deals, rejects,
