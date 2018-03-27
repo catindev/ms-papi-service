@@ -385,7 +385,8 @@ async function rejectCustomersForStats({ userID, start, end, trunk = false, mana
     if (trunk) query.trunk = trunk
     if (manager) query.user = manager
 
-    const customers = await Customer.find(query).populate('user').lean().exec()
+    const customers = await Customer.find(query)
+        .sort('-reject.date').populate('user').lean().exec()
 
     return customers.map(({ name, reject, user, _id }) => ({
         _id, name,
@@ -412,7 +413,8 @@ async function dealCustomersForStats({ userID, start, end, trunk = false, manage
     if (trunk) query.trunk = trunk
     if (manager) query.user = manager
 
-    return await Customer.find(query).lean().exec()
+    return await Customer.find(query)
+        .sort('-deal.date').lean().exec()
 }
 
 async function leadCustomersForStats({ userID, start, end }) {
