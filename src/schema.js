@@ -130,6 +130,36 @@ const Param = mongoose.model('Param', new Schema({
     description: String
 }))
 
+const Breadcrumb = mongoose.model('Breadcrumb', new Schema({
+    account: { type: ObjectId, ref: 'Account' },
+    customer: { type: ObjectId, ref: 'Customer' },
+    date: { type: Date, default: Date.now() },
+    type: {
+        type: String,
+        enum: [
+            'created', // 🐣
+            'assigned', // 👥
+            'call', // ⬅
+            'callback', // ➡
+            'note', // 💬
+            'deal', // 💰
+            'reject', // 🚽
+            'reopen' // 🔄
+        ]
+    },
+    comment: String,
+
+    /* Спецполя */
+
+    // для assigned 
+    // пустое когда created по звонку с АТС и на пропущенный звонок
+    user: { type: ObjectId, ref: 'User' },
+
+    call: { type: ObjectId, ref: 'Call' }, // для call
+    reason: String, // для reject
+    amount: Number, // для deal
+}, { strict: false }))
+
 
 module.exports = {
     Log,
@@ -141,5 +171,6 @@ module.exports = {
     Contact,
     Customer,
     Call,
-    Param
+    Param,
+    Breadcrumb
 }

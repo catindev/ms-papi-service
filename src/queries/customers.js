@@ -1,5 +1,5 @@
 const toObjectId = require('mongoose').Types.ObjectId
-const { Account, Customer, Contact, Call, Trunk, Param, Log } = require('../schema')
+const { Account, Customer, Contact, Call, Trunk, Param, Log, Breadcrumb } = require('../schema')
 const CustomError = require('../utils/error')
 const formatNumber = require('../utils/formatNumber')
 const formatNumberForHumans = require('../utils/formatNumberForHumans')
@@ -196,7 +196,6 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
         $set: {
             funnelStep: 'reject',
             lastUpdate: new Date(),
-            lastActivity: 'оформлен отказ',
             reject: {
                 reason,
                 comment,
@@ -208,6 +207,14 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
     }
 
     if (name) query.$set.name = name
+
+    const newBreadcrumb = new Breadcrumb({
+        account: _id, customer: customer._id,
+        user: userID, type: 'reject',
+        reason, comment,
+        previousStep: funnelStep
+    })
+    const createdBreadcrumb = await newBreadcrumb.save()
 
     return await Customer.findOneAndUpdate(
         { _id: customerID, account: _id }, query, { new: true }
