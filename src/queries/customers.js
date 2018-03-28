@@ -129,6 +129,14 @@ async function createColdLead({ userID, data }) {
     }))
     const createdLead = await newCustomer.save()
 
+    const newBreadcrumb = new Breadcrumb({
+        account: _id,
+        customer: createdLead._id,
+        user: userID,
+        type: 'created'
+    })
+    const createdBreadcrumb = await newBreadcrumb.save()
+
     return await createContact({
         userID, customerID: createdLead._id, data: {
             name: 'Основной',
@@ -233,20 +241,32 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
     const { funnelStep } = customer
+    const deal = await Customer.findOneAndUpdate({
+        _id: customerID, account: _id, user: userID
+    }, {
+            $set: {
+                funnelStep: 'deal',
+                lastUpdate: new Date(),
+                deal: {
+                    amount,
+                    comment,
+                    previousStep: funnelStep,
+                    date: new Date()
+                },
+            }
+        }, { new: true })
 
-    return await Customer.findOneAndUpdate({ _id: customerID, account: _id, user: userID }, {
-        $set: {
-            funnelStep: 'deal',
-            lastUpdate: new Date(),
-            lastActivity: 'продажа',
-            deal: {
-                amount,
-                comment,
-                previousStep: funnelStep,
-                date: new Date()
-            },
-        }
-    }, { new: true })
+    const newBreadcrumb = new Breadcrumb({
+        account: _id,
+        customer: customerID,
+        user: userID,
+        type: 'deal',
+        amount, comment,
+        previousStep: funnelStep
+    })
+    const createdBreadcrumb = await newBreadcrumb.save()
+
+    return deal
 }
 
 
@@ -278,15 +298,24 @@ async function comeBackCustomer({ userID, customerID }) {
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
-    return await Customer.findOneAndUpdate(
+    const reopened = await Customer.findOneAndUpdate(
         { _id: customerID, account: _id },
         {
             $set: {
                 funnelStep: 'in-progress',
-                lastUpdate: new Date(),
-                lastActivity: 'возврат в работу'
+                lastUpdate: new Date()
             }
         }, { new: true })
+
+    const newBreadcrumb = new Breadcrumb({
+        account: _id,
+        customer: customerID,
+        user: userID,
+        type: 'reopen'
+    })
+    const createdBreadcrumb = await newBreadcrumb.save()
+
+    return reopened
 }
 
 async function updateCustomer({ userID, customerID, body }) {
