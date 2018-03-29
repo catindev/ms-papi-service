@@ -327,7 +327,6 @@ async function updateCustomer({ userID, customerID, body }) {
     const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
     if (!customer) throw new CustomError('Клиент не найден или назначен на другого менеджера', 400)
 
-
     const { funnelStep } = customer
     if (funnelStep === 'lead' || funnelStep === 'cold') {
         body.funnelStep = 'in-progress'

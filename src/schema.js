@@ -79,6 +79,7 @@ const customerSchema = new Schema({
     notes: String,
     funnelStep: String, // lead || cold, in-progress, ...custom, deal || reject
     contacts: [{ type: ObjectId, ref: 'Contact' }],
+    breadcrumbs: [{ type: ObjectId, ref: 'Breadcrumb' }],
     deal: {
         amount: Number,
         comment: String,
