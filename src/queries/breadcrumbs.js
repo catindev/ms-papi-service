@@ -1,23 +1,27 @@
 const toObjectId = require('mongoose').Types.ObjectId
-const { Account, Customer, Contact, Call, Trunk, Param, Log, Breadcrumb } = require('../schema')
+const { Account, Customer, Contact, Call, User, Breadcrumb } = require('../schema')
 const CustomError = require('../utils/error')
-const formatNumber = require('../utils/formatNumber')
-const formatNumberForHumans = require('../utils/formatNumberForHumans')
 const humanDate = require('../utils/humanDate')
-const formatDate = require('../utils/formatDate')
-const { userById } = require('./users')
-const { addLog } = require('./logs')
-const request = require('request-promise')
-const md5 = require('../utils/md5')
+
 const moment = require('moment')
-const { sortBy } = require('lodash')
-const { createContact } = require('./contacts')
+moment.locale('ru')
+
+const EDIT_LIMIT = 1
+
+function isToday(odate) {
+    const momentDate = moment(odate)
+    const today = moment().startOf('day')
+    return momentDate.isSame(today, 'd')
+}
 
 async function createBreadcrumb({ userID, customerID, data }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id } } = await userById({ userID })
+    const { account: { _id } } = await User
+        .findOne({ _id: userID }, { __v: false, password: false })
+        .populate('account')
+        .exec()
 
     const newBreadcrumb = new Breadcrumb(Object.assign({}, data, {
         account: _id,
@@ -26,50 +30,52 @@ async function createBreadcrumb({ userID, customerID, data }) {
     }))
     const createdBreadcrumb = await newBreadcrumb.save()
 
-    return await Customer.findOneAndUpdate(
+    await Customer.findOneAndUpdate(
         { _id: customerID },
         { $push: { breadcrumbs: createdBreadcrumb._id } },
         { new: true }
     )
+
+    return await Breadcrumb.populate(newBreadcrumb, { path: "user" })
 }
 
 async function getBreadcrumbs({ userID, customerID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id } } = await userById({ userID })
+    const { account: { _id } } = await User
+        .findOne({ _id: userID }, { __v: false, password: false })
+        .populate('account')
+        .exec()
 
     return await Breadcrumb
         .find({ account: _id, customer: customerID })
-        .populate('user, call')
+        .sort('-date')
+        .populate('user call')
         .lean()
         .exec()
 }
 
-async function createNote({ userID, customerID, comment }) {
-    if (typeof userID === 'string') userID = toObjectId(userID)
-    if (typeof customerID === 'string') customerID = toObjectId(customerID)
-
-    return await createBreadcrumb({
-        userID, customerID,
-        data: { type: 'note', comment }
-    })
-}
-
-async function updateNote({ userID, breadcrumbID, comment }) {
+// TODO: не изменять историю если с момента создания прошло больше EDIT_LIMIT
+async function updateBreadcrumb({ userID, breadcrumbID, data }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof breadcrumbID === 'string') breadcrumbID = toObjectId(breadcrumbID)
 
     return await Breadcrumb.findOneAndUpdate(
-        { _id: breadcrumbID }, { $set: { comment } }, { new: true }
-    )
+        { _id: breadcrumbID }, { $set: data }, { new: true }
+    ).populate('user call').lean().exec()
 }
 
-async function removeNote({ userID, breadcrumbID }) {
+
+// TODO: не удалять историю если с момента создания прошло больше EDIT_LIMIT
+async function removeBreadcrumb({ userID, breadcrumbID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof breadcrumbID === 'string') breadcrumbID = toObjectId(breadcrumbID)
 
-    const { account: { _id } } = await userById({ userID })
+    const { account: { _id } } = await User
+        .findOne({ _id: userID }, { __v: false, password: false })
+        .populate('account')
+        .exec()
 
     const breadcrumb = await Breadcrumb
         .findOne({ _id: breadcrumbID, account: _id })
@@ -77,7 +83,10 @@ async function removeNote({ userID, breadcrumbID }) {
         .exec()
 
     if (!breadcrumb || breadcrumb === null)
-        throw new CustomError(`Не могу найти и удалить заметку`, 400)
+        throw new CustomError(`Не могу найти и удалить историю`, 400)
+
+    // if (isToday(breadcrumb.date))
+    //     throw new CustomError(`Нельзя удалить историю старше одного дня`, 400)
 
     await Customer.findOneAndUpdate(
         { _id: breadcrumb.customer._id },
@@ -88,4 +97,7 @@ async function removeNote({ userID, breadcrumbID }) {
     return await breadcrumb.remove()
 }
 
-module.exports = { createBreadcrumb, createNote, updateNote, removeNote }
+module.exports = {
+    createBreadcrumb, getBreadcrumbs, createBreadcrumb,
+    updateBreadcrumb, removeBreadcrumb
+}

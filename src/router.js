@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const { createPassword, verifyPassword, findOneSession, SignOut, getTokenOwner } = require('./queries/sessions')
 const { addLog, getLog, cleanLog } = require('./queries/logs')
+const { createBreadcrumb, getBreadcrumbs, updateBreadcrumb, removeBreadcrumb } = require('./queries/breadcrumbs')
 const {
     search,
     leads,
@@ -35,6 +36,8 @@ const {
     createContact, getContacts, getContact, removeContact,
     updateContact, callbackToContact
 } = require('./queries/contacts')
+
+const humanDate = require('./utils/humanDate')
 
 router.get('/', (request, response) => response.json({
     name: 'ms-papi-service',
@@ -285,6 +288,59 @@ router.put('/customers/:customerID', (request, response, next) => {
 
     updateCustomer({ userID, customerID, body })
         .then(customer => response.json({ status: 200, customer }))
+        .catch(next)
+})
+
+/* Breadcrumbs */
+
+router.post('/customers/:customerID/breadcrumbs', (request, response, next) => {
+    const { userID, params: { customerID }, query: { df }, body } = request
+
+    createBreadcrumb({ userID, customerID, data: body })
+        .then(b => {
+            const breadcrumb = JSON.parse(JSON.stringify(b))
+            delete breadcrumb.user.password
+            delete breadcrumb.user.__v
+
+            // 🤔 💩
+            if (df && df === 'human') breadcrumb.date = humanDate(breadcrumb.date)
+
+            response.json({ status: 200, breadcrumb })
+        })
+        .catch(next)
+})
+
+router.get('/customers/:customerID/breadcrumbs', (request, response, next) => {
+    const { userID, params: { customerID } } = request
+
+    getBreadcrumbs({ userID, customerID })
+        .then(items => {
+            items = items.map(item => {
+                if (!item.user) return item
+
+                delete item.user.password
+                delete item.user.__v
+
+                return item
+            })
+            response.json({ status: 200, items })
+        })
+        .catch(next)
+})
+
+router.put('/breadcrumbs/:breadcrumbID', (request, response, next) => {
+    const { userID, params: { breadcrumbID }, body } = request
+
+    updateBreadcrumb({ userID, breadcrumbID, data: body })
+        .then(breadcrumb => response.json({ status: 200, breadcrumb }))
+        .catch(next)
+})
+
+router.delete('/breadcrumbs/:breadcrumbID', (request, response, next) => {
+    const { userID, params: { breadcrumbID } } = request
+
+    removeBreadcrumb({ userID, breadcrumbID })
+        .then(() => response.json({ status: 200 }))
         .catch(next)
 })
 

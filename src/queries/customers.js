@@ -12,6 +12,7 @@ const md5 = require('../utils/md5')
 const moment = require('moment')
 const { sortBy } = require('lodash')
 const { createContact } = require('./contacts')
+const { getBreadcrumbs } = require('./breadcrumbs')
 
 async function updateLast({ userID, customerID, lastActivity }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -186,6 +187,21 @@ async function customerById({ userID, customerID, params = false }) {
         if (params) customer = Object.assign({}, customer, { params })
     }
 
+    // getBreadcrumbs
+    const breadcrumbs = await getBreadcrumbs({ userID, customerID })
+    if (breadcrumbs.length > 0) {
+        customer = Object.assign({}, customer, { breadcrumbs })
+        customer.breadcrumbs = customer.breadcrumbs.map(b => {
+            const clone = JSON.parse(JSON.stringify(b))
+            clone.date = humanDate(clone.date)
+            if (clone.type === 'call' || clone.type === 'callback')
+                clone.call.date = humanDate(clone.call.date)
+            return clone
+        })
+    } else {
+        customer = Object.assign({}, customer, { breadcrumbs: [] })
+    }
+
     return customer
 }
 
@@ -341,6 +357,8 @@ async function updateCustomer({ userID, customerID, body }) {
 }
 
 
+// TODO: куча треша с эмоджи в описаниях задачи и прочим
+// Оставляю пока так в надежде, что выпилим воронку к хуям
 async function funnel({ userID, today = false }) {
     function getId(name) {
         const hash = md5(name)
