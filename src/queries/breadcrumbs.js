@@ -52,7 +52,7 @@ async function getBreadcrumbs({ userID, customerID }) {
     return await Breadcrumb
         .find({ account: _id, customer: customerID })
         .sort('-date')
-        .populate('user call')
+        .populate('user call trunk')
         .lean()
         .exec()
 }
