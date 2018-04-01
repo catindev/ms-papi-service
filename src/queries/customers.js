@@ -274,15 +274,15 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
             }
         }, { new: true })
 
-    const newBreadcrumb = new Breadcrumb({
-        account: _id,
-        customer: customerID,
-        user: userID,
-        type: 'deal',
-        amount, comment,
-        previousStep: funnelStep
+    await createBreadcrumb({
+        userID, customerID,
+        data: {
+            date: new Date(),
+            type: 'deal',
+            amount, comment,
+            previousStep: funnelStep
+        }
     })
-    const createdBreadcrumb = await newBreadcrumb.save()
 
     return deal
 }
