@@ -117,7 +117,8 @@ async function createColdLead({ userID, data }) {
     const customer = await Customer.findOne({ account: _id, phones: data.phones })
     if (customer) throw new CustomError('Номер уже зарегистрирован', 400)
 
-    const trunk = await Trunk.findOne({ account: _id })
+    const trunk = await Trunk.findOne({ account: _id, active: true })
+    if (!trunk) throw new CustomError('Не могу добавить клиента. Нет активных источников чтобы привязать к карточке. Напишите об этой ошибке в поддержку', 404)
 
     const newCustomer = new Customer(Object.assign({}, data, {
         account: _id,
