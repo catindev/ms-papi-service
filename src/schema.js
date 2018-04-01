@@ -155,8 +155,8 @@ const Breadcrumb = mongoose.model('Breadcrumb', new Schema({
     // для assigned 
     // пустое когда created по звонку с АТС и на пропущенный звонок
     user: { type: ObjectId, ref: 'User' },
-
     call: { type: ObjectId, ref: 'Call' }, // для call
+    trunk: { type: ObjectId, ref: 'Trunk' }, // для created 
     reason: String, // для reject
     amount: Number, // для deal
 }, { strict: false }))
