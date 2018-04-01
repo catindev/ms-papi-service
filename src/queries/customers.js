@@ -130,13 +130,13 @@ async function createColdLead({ userID, data }) {
     }))
     const createdLead = await newCustomer.save()
 
-    const newBreadcrumb = new Breadcrumb({
-        account: _id,
-        customer: createdLead._id,
-        user: userID,
-        type: 'created'
+    await createBreadcrumb({
+        userID, customerID: createdLead._id,
+        data: {
+            date: new Date(),
+            type: 'created'
+        }
     })
-    const createdBreadcrumb = await newBreadcrumb.save()
 
     return await createContact({
         userID, customerID: createdLead._id, data: {
@@ -232,13 +232,15 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
 
     if (name) query.$set.name = name
 
-    const newBreadcrumb = new Breadcrumb({
-        account: _id, customer: customer._id,
-        user: userID, type: 'reject',
-        reason, comment,
-        previousStep: funnelStep
+    await createBreadcrumb({
+        userID, customerID: customer._id,
+        data: {
+            date: new Date(),
+            type: 'reject',
+            reason, comment,
+            previousStep: funnelStep
+        }
     })
-    const createdBreadcrumb = await newBreadcrumb.save()
 
     return await Customer.findOneAndUpdate(
         { _id: customerID, account: _id }, query, { new: true }
@@ -323,13 +325,14 @@ async function comeBackCustomer({ userID, customerID }) {
             }
         }, { new: true })
 
-    const newBreadcrumb = new Breadcrumb({
-        account: _id,
-        customer: customerID,
-        user: userID,
-        type: 'reopen'
+    await createBreadcrumb({
+        userID, customerID,
+        data: {
+            date: new Date(),
+            type: 'reopen'
+        }
     })
-    const createdBreadcrumb = await newBreadcrumb.save()
+
 
     return reopened
 }
