@@ -24,6 +24,7 @@ async function createBreadcrumb({ userID, customerID, data }) {
         .exec()
 
     const newBreadcrumb = new Breadcrumb(Object.assign({}, data, {
+        date: new Date(),
         account: _id,
         customer: customerID,
         user: userID
