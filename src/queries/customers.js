@@ -12,7 +12,7 @@ const md5 = require('../utils/md5')
 const moment = require('moment')
 const { sortBy } = require('lodash')
 const { createContact } = require('./contacts')
-const { getBreadcrumbs } = require('./breadcrumbs')
+const { createBreadcrumb, getBreadcrumbs } = require('./breadcrumbs')
 
 async function updateLast({ userID, customerID, lastActivity }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
