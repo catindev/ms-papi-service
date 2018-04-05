@@ -374,7 +374,41 @@ async function rejectCustomersForStats({ userID, start, end, trunk = false, mana
     if (typeof manager === 'string') manager = toObjectId(manager)
 
     const { account: { _id } } = await userById({ userID })
-    const query = { account: _id, funnelStep: 'reject' }
+    const query = {
+        account: _id, funnelStep: 'reject',
+        'reject.previousStep': { $nin: ['lead', 'cold', 'deal', 'reject'] }
+    }
+
+    if (start || end) {
+        query['reject.date'] = {}
+        if (start) query['reject.date'].$gte = start
+        if (end) query['reject.date'].$lt = end
+    }
+
+    if (trunk) query.trunk = trunk
+    if (manager) query.user = manager
+
+    const customers = await Customer.find(query)
+        .sort('-reject.date').populate('user').lean().exec()
+
+    return customers.map(({ name, reject, user, _id }) => ({
+        _id, name,
+        reason: reject.reason === 'Другое' ? reject.comment || reject.reason : reject.reason,
+        date: humanDate(reject.date),
+        user: user.name
+    }))
+}
+
+async function badLeadsProfilesForStats({ userID, start, end, trunk = false, manager = false }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    if (typeof trunk === 'string') trunk = toObjectId(trunk)
+    if (typeof manager === 'string') manager = toObjectId(manager)
+
+    const { account: { _id } } = await userById({ userID })
+    const query = {
+        account: _id, funnelStep: 'reject',
+        'reject.previousStep': 'lead'
+    }
 
     if (start || end) {
         query['reject.date'] = {}
@@ -506,6 +540,7 @@ module.exports = {
     // profiles
     rejectCustomersForStats,
     dealCustomersForStats,
+    badLeadsProfilesForStats,
     leadCustomersForStats,
 
     // users

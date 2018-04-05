@@ -21,10 +21,10 @@
   "dependencies": {
     "apicache": "^1.1.0",
     "body-parser": "^1.18.1",
-    "chunk-date-range": "^0.1.0",
-    "compression": "^1.7.1",
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
+    "chunk-date-range": "^0.1.0",
+    "compression": "^1.7.1",
     "ejs": "^2.5.7",
     "express": "^4.15.4",
     "express-rate-limit": "^2.9.0",
