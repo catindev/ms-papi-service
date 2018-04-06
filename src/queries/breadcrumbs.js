@@ -99,6 +99,6 @@ async function removeBreadcrumb({ userID, breadcrumbID }) {
 }
 
 module.exports = {
-    createBreadcrumb, getBreadcrumbs, createBreadcrumb,
+    createBreadcrumb, getBreadcrumbs,
     updateBreadcrumb, removeBreadcrumb
 }
