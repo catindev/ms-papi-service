@@ -465,16 +465,25 @@ async function search({
     userID,
     step,
     searchQuery = 'undefined',
-    options,
+    options = {},
     fields = null
 }) {
+
+    function getURL({ funnelStep, _id }) {
+        const prefix = 'new'
+        if (funnelStep === 'lead') return `http://${prefix}.mindsales-crm.com/leads/hot/${_id}?pm_source=from_search`
+        if (funnelStep === 'cold') return `http://${prefix}.mindsales-crm.com/leads/cold/${_id}?pm_source=from_search`
+        if (funnelStep === 'reject' || funnelStep === 'deal') return `http://${prefix}.mindsales-crm.com/closed/${_id}?pm_source=from_search`
+        return `http://${prefix}.mindsales-crm.com/customers/${_id}?pm_source=from_search`
+    }
+
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     if (step && searchQuery === 'undefined') searchQuery = ''
 
     const searchOptions = [
         { name: { '$regex': searchQuery, '$options': 'i' } },
-        { phones: { '$regex': searchQuery, '$options': 'i' } }
+        { phone: { '$regex': searchQuery.replace(/\D/g, ''), '$options': 'i' } }
     ]
 
     const { account: { _id } } = await userById({ userID }, options)
@@ -487,10 +496,16 @@ async function search({
     if (step) query.funnelStep = step
     if (searchQuery) query.$or = Object.assign(query.$or, searchOptions)
 
-    options.skip && (options.skip = parseInt(options.skip))
-    options.limit && (options.limit = parseInt(options.limit))
+    const skip = options.skip ? parseInt(options.skip) : 0
+    const limit = options.limit ? parseInt(options.limit) : 10
 
-    return await Customer.find(query, fields, options)
+    const contacts = await Contact.find(query, fields, { skip, limit }).populate('customer').exec()
+
+    return contacts.map(contact => ({
+        name: contact.customer.name,
+        phone: contact.phone,
+        url: getURL(contact.customer)
+    }))
 }
 
 
