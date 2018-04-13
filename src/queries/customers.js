@@ -34,6 +34,16 @@ async function setTask({ userID, customerID, when, what, time = '00:00' }) {
 
     when = new Date(when)
 
+    await createBreadcrumb({
+        userID, customerID,
+        data: {
+            date: new Date(),
+            type: 'task',
+            comment: what,
+            task: { when, time }
+        }
+    })
+
     return await Customer.findOneAndUpdate(
         { _id: customerID, user: userID, account: _id },
         { $set: { 'task.what': what, 'task.when': when, 'task.time': time } },

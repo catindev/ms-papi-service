@@ -145,7 +145,8 @@ const Breadcrumb = mongoose.model('Breadcrumb', new Schema({
             'note', // 💬
             'deal', // 💰
             'reject', // 🚽
-            'reopen' // 🔄
+            'reopen', // 🔄
+            'task' // ✅
         ]
     },
     comment: String,
@@ -159,6 +160,7 @@ const Breadcrumb = mongoose.model('Breadcrumb', new Schema({
     trunk: { type: ObjectId, ref: 'Trunk' }, // для created 
     reason: String, // для reject
     amount: Number, // для deal
+    task: { when: Date, time: String } // для task
 }, { strict: false }))
 
 
