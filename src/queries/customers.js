@@ -207,7 +207,7 @@ async function customerById({ userID, customerID, params = false }) {
             clone.date = humanDate(clone.date)
             if (clone.type === 'call' || clone.type === 'callback')
                 clone.call.date = humanDate(clone.call.date)
-            if (clone.type === 'task') clone.task.when = humanDate(clone.task.when)
+            if (clone.type === 'task') clone.task.when = humanDate(clone.task.when, true)
             return clone
         })
     } else {
