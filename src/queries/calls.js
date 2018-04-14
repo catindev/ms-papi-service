@@ -18,14 +18,23 @@ const populateQuery = [
 ]
 
 
-async function recentCalls({ userID }) {
+async function recentCalls({ userID, fromDate = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id } } = await userById({ userID })
 
+    fromDate = fromDate ?
+        new Date(fromDate).getTime()
+        :
+        (new Date().getTime() - 14 * 60 * 60 * 24 * 1000)
+
     const calls = await Call
-        .find({ account: _id, $or: [{ user: userID }, { user: { $exists: false } }] })
-        .limit(25)
+        .find({
+            date: { $gte: new Date(fromDate) },
+            account: _id,
+            $or: [{ user: userID }, { user: { $exists: false } }]
+        })
+        // .limit(25)
         .sort('-date')
         .populate(populateQuery)
         .lean()

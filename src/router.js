@@ -138,9 +138,9 @@ router.get('/customers/recents', (request, response, next) => {
 })
 
 router.get('/recent.calls', (request, response, next) => {
-    const { userID } = request
+    const { userID, query: { fromDate } } = request
 
-    recentCalls({ userID })
+    recentCalls({ userID, fromDate })
         .then(items => response.json({ status: 200, items }))
         .catch(next)
 })
