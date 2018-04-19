@@ -426,7 +426,7 @@ async function badLeadsProfilesForStats({ userID, start, end, trunk = false, man
         _id, name,
         reason: reject.reason === 'Другое' ? reject.comment || reject.reason : reject.reason,
         date: humanDate(reject.date),
-        user: user.name
+        user: user? user.name : ''
     }))
 }
 
