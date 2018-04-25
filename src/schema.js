@@ -146,7 +146,8 @@ const Breadcrumb = mongoose.model('Breadcrumb', new Schema({
             'deal', // 💰
             'reject', // 🚽
             'reopen', // 🔄
-            'task' // ✅
+            'task', // ✅
+            'in-progress'
         ]
     },
     comment: String,
