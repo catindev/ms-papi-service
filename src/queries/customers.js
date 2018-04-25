@@ -124,20 +124,20 @@ async function createColdLead({ userID, data }) {
     const { account: { _id } } = await userById({ userID })
 
     data.phones = formatNumber(data.phones)
-    const customer = await Customer.findOne({ account: _id, phones: data.phones })
-    if (customer) throw new CustomError('Номер уже зарегистрирован', 400)
+    const contact = await Contact.findOne({ account: _id, phone: data.phones }).populate('customer').exec()
 
-    const trunk = await Trunk.findOne({ account: _id, active: true })
-    if (!trunk) throw new CustomError('Не могу добавить клиента. Нет активных источников чтобы привязать к карточке. Напишите об этой ошибке в поддержку', 404)
+    if (contact) throw new CustomError(`Номер уже сохранён под именем ${contact.name} у клиента ${contact.customer.name}`, 400)
+
+    const trunk = await Trunk.findOne({ account: _id, active: true, name: 'Холодные звонки' })
+    if (!trunk || trunk === null)
+        throw new CustomError('Не могу добавить клиента. Нет источников для холодного обзвона. Напишите об этой ошибке в поддержку', 404)
 
     const newCustomer = new Customer(Object.assign({}, data, {
         account: _id,
         user: userID,
         funnelStep: 'cold',
         trunk: trunk._id,
-        lastUpdate: new Date(),
-        contacts: [],
-        lastActivity: 'добавлен в холодные'
+        contacts: []
     }))
     const createdLead = await newCustomer.save()
 
@@ -168,7 +168,8 @@ async function customerById({ userID, customerID, params = false }) {
     let customer = await Customer.findOne({ account: _id, _id: customerID })
         .populate('account trunk user').exec()
 
-    if (!customer) throw new CustomError('Клиент не найден', 404)
+    if (!customer)
+        throw new CustomError('Клиент не найден. Напишите об этой ошибке в поддержку', 404)
 
     if (customer.user && !customer.user._id.equals(userID)) {
         // throw new CustomError('Клиент назначен на другого менеджера', 404)
@@ -225,7 +226,7 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
 
     const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
 
-    if (!customer) throw new CustomError('Клиент не найден', 400)
+    if (!customer) throw new CustomError('Клиент не найден. Напишите об этой ошибке в поддержку', 400)
 
     const { funnelStep, user } = customer
     const query = {
@@ -268,7 +269,7 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
 
     const customer = await Customer.findOne({ _id: customerID, account: _id, user: userID }).lean().exec()
 
-    if (!customer) throw new CustomError('Клиент не найден', 400)
+    if (!customer) throw new CustomError('Клиент не найден. Напишите об этой ошибке в поддержку', 400)
 
     const { funnelStep } = customer
     const deal = await Customer.findOneAndUpdate({
@@ -359,14 +360,20 @@ async function updateCustomer({ userID, customerID, body }) {
     if (!customer) throw new CustomError('Клиент не найден или назначен на другого менеджера', 400)
 
     const { funnelStep } = customer
+
     if (funnelStep === 'lead' || funnelStep === 'cold') {
         body.funnelStep = 'in-progress'
         body.user = userID
-        body.lastActivity = 'взят в работу'
-    } else {
-        body.lastActivity = 'отредактирован'
+
+        await createBreadcrumb({
+            userID, customerID,
+            data: {
+                date: new Date(),
+                type: 'in-progress',
+                payload: body
+            }
+        })
     }
-    body.lastUpdate = new Date()
 
     return await Customer.findOneAndUpdate({ _id: customerID }, { $set: body }, { new: true })
 }
@@ -582,17 +589,24 @@ async function coldCall({ userID, customerID }) {
         .findOne({ _id: customerID, user: userID, account: _id })
         .populate('trunk').exec()
 
+    const coldTrunk = await Trunk.findOne({
+        account: _id, active: true,
+        name: 'Холодные звонки'
+    })
+
+    if (!coldTrunk || coldTrunk === null)
+        throw new CustomError('Не найден источник для холодных лидов', 404)
+
     const qs = {
         cn: customer.phones[0].replace('+7', '8'),
         un: phones[0].replace('+7', '8'),
-        tr: customer.trunk.phone.replace('+7', '8'),
+        tr: coldTrunk.phone.replace('+7', '8'),
         call_id: 'cold_call',
         secret_key: '2c22d5c2ed37ea03db53ff931e7a9cf6'
     }
 
     const options = {
-        uri: 'http://185.22.65.50/cold_call.php',
-        qs,
+        uri: 'http://185.22.65.50/cold_call.php', qs,
         headers: { 'User-Agent': 'Request-Promise' },
         json: true
     }
@@ -604,14 +618,7 @@ async function coldCall({ userID, customerID }) {
         payload: { qs, response }
     })
 
-    return {
-        params: {
-            cn: customer.phones[0].replace('+7', '8'),
-            un: phones[0].replace('+7', '8'),
-            tr: customer.trunk.phone.replace('+7', '8')
-        },
-        response
-    }
+    return { params: qs, response }
 }
 
 async function isCustomerOwner({ userID, customerID }) {
