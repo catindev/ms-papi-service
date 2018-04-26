@@ -291,6 +291,7 @@ async function incomingCallsStats({ userID, start, end, interval }) {
 
 async function funnelAll({ userID, manager = false }) {
     const moment = require('moment')
+    moment.locale('ru')
     const { sortBy } = require('lodash')
 
     function getId(name) {
@@ -326,12 +327,15 @@ async function funnelAll({ userID, manager = false }) {
 
     const query = { account: _id, funnelStep: { $in: funnelSteps } }
     manager && (query.user = manager)
-    const customers = await Customer.find(query).populate('user').select('_id name funnelStep user').lean().exec()
+    const customers = await Customer.find(query).populate('user breadcrumbs').select('_id name funnelStep user breadcrumbs').lean().exec()
 
     if (!customers || customers.length === 0) return []
 
     const normalizedCustomers = customers
-        .map(({ _id, name, funnelStep, user }) => ({ _id, name, funnelStep, user: user.name }))
+        .map(({ _id, name, funnelStep, user, breadcrumbs }) => ({
+            _id, name, funnelStep, user: user.name,
+            lastUpdate: moment(breadcrumbs[breadcrumbs.length - 1].date).fromNow()
+        }))
 
     return funnelSteps.reduce((result, step) => {
         result.push({
@@ -426,7 +430,7 @@ async function badLeadsProfilesForStats({ userID, start, end, trunk = false, man
         _id, name,
         reason: reject.reason === 'Другое' ? reject.comment || reject.reason : reject.reason,
         date: humanDate(reject.date),
-        user: user? user.name : ''
+        user: user ? user.name : ''
     }))
 }
 
