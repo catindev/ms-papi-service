@@ -319,6 +319,11 @@ async function funnelAll({ userID, manager = false }) {
         return d.isSame(today, 'd')
     }
 
+    function getLastUpdate(breadcrumbs) {
+        if (breadcrumbs.length === 0) return '???'
+        return moment(breadcrumbs[breadcrumbs.length - 1].date).fromNow()
+    }
+
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (manager && typeof manager === 'string') manager = toObjectId(manager)
     const { account: { _id, funnelSteps } } = await userById({ userID })
@@ -334,7 +339,7 @@ async function funnelAll({ userID, manager = false }) {
     const normalizedCustomers = customers
         .map(({ _id, name, funnelStep, user, breadcrumbs }) => ({
             _id, name, funnelStep, user: user.name,
-            lastUpdate: moment(breadcrumbs[breadcrumbs.length - 1].date).fromNow()
+            lastUpdate: getLastUpdate(breadcrumbs)
         }))
 
     return funnelSteps.reduce((result, step) => {
