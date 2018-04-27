@@ -320,7 +320,7 @@ async function funnelAll({ userID, manager = false }) {
     }
 
     function getLastUpdate(breadcrumbs) {
-        if (breadcrumbs.length === 0) return '???'
+        if (breadcrumbs.length === 0) return 'не известно'
         return moment(breadcrumbs[breadcrumbs.length - 1].date).fromNow()
     }
 
@@ -337,7 +337,7 @@ async function funnelAll({ userID, manager = false }) {
     if (!customers || customers.length === 0) return []
 
     const normalizedCustomers = customers
-        .map(({ _id, name, funnelStep, user, breadcrumbs }) => ({
+        .map(({ _id, name, funnelStep, user, breadcrumbs = [] }) => ({
             _id, name, funnelStep, user: user.name,
             lastUpdate: getLastUpdate(breadcrumbs)
         }))
