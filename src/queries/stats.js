@@ -460,7 +460,7 @@ async function dealCustomersForStats({ userID, start, end, trunk = false, manage
         .sort('-deal.date').lean().exec()
 }
 
-async function leadCustomersForStats({ userID, start, end }) {
+async function qeuedLeadsForStats({ userID, start, end, trunk = false, manager = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id } } = await userById({ userID })
@@ -472,7 +472,10 @@ async function leadCustomersForStats({ userID, start, end }) {
         if (end) query.created.$lt = end
     }
 
-    return await Customer.find(query).lean().exec()
+    if (trunk) query.trunk = trunk
+    if (manager) query.user = manager
+
+    return await Customer.find(query).sort('-created').populate('trunk').lean().exec()
 }
 
 async function customersByUsers({ userID }) {
@@ -550,7 +553,7 @@ module.exports = {
     rejectCustomersForStats,
     dealCustomersForStats,
     badLeadsProfilesForStats,
-    leadCustomersForStats,
+    qeuedLeadsForStats,
 
     // users
     usersStats, customersByUsers

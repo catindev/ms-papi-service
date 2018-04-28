@@ -27,7 +27,7 @@ const {
     customerPortrait, statsLeadsFromTrunks, fuckedLeads,
     incomingCallsStats, funnelAll, statsLeadsFromTrunks2,
     rejectCustomersForStats, dealCustomersForStats, badLeadsProfilesForStats,
-    // leadCustomersForStats, ?не используется
+    qeuedLeadsForStats,
     usersStats, customersByUsers
 } = require('./queries/stats')
 const { allAccounts } = require('./queries/accounts')
@@ -460,15 +460,15 @@ router.get('/stats/deal/profiles', (request, response, next) => {
     const { userID, query: { start, end, manager, trunk } } = request
 
     dealCustomersForStats({ userID, start, end, manager, trunk })
-        .then(customers => response.json({ status: 200, customers }))
+        .then(customers => response.json({ status: 200, count: customers.length, customers }))
         .catch(next)
 })
 
 router.get('/stats/leads/profiles', (request, response, next) => {
-    const { userID, query: { start, end } } = request
+    const { userID, query: { start, end, manager, trunk } } = request
 
-    leadCustomersForStats({ userID, start, end })
-        .then(customers => response.json({ status: 200, customers }))
+    qeuedLeadsForStats({ userID, start, end, manager, trunk })
+        .then(customers => response.json({ status: 200, count: customers.length, customers }))
         .catch(next)
 })
 
