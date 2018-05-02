@@ -464,7 +464,7 @@ async function qeuedLeadsForStats({ userID, start, end, trunk = false, manager =
     if (typeof userID === 'string') userID = toObjectId(userID)
 
     const { account: { _id } } = await userById({ userID })
-    const query = { account: _id, funnelStep: 'lead' }
+    const query = { account: _id, funnelStep: 'lead', user: { $exists: true } }
 
     if (start || end) {
         query.created = {}
