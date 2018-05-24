@@ -104,7 +104,9 @@ async function callbackToContact({ userID, contactID }) {
             tr: contact.customer.trunk.phone.replace('+7', '8'),
             call_id: 'cold_call',
             secret_key: '2c22d5c2ed37ea03db53ff931e7a9cf6',
-            crm_user_id
+            // debug
+            crm_user_id, 
+            crm_customer_status: contact.customer.funnelStep
         },
         headers: { 'User-Agent': 'Mindsales-CRM' },
         json: true
