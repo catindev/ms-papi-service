@@ -79,6 +79,8 @@ async function updateContact({ userID, contactID, data }) {
 }
 
 async function callbackToContact({ userID, contactID }) {
+    const crm_user_id = userID
+
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof contactID === 'string') contactID = toObjectId(contactID)
 
@@ -102,7 +104,7 @@ async function callbackToContact({ userID, contactID }) {
             tr: contact.customer.trunk.phone.replace('+7', '8'),
             call_id: 'cold_call',
             secret_key: '2c22d5c2ed37ea03db53ff931e7a9cf6',
-            crm_user_id: userID
+            crm_user_id
         },
         headers: { 'User-Agent': 'Mindsales-CRM' },
         json: true
