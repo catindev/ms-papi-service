@@ -1,56 +1,127 @@
 const toObjectId = require('mongoose').Types.ObjectId
-const { Account, Customer, Contact, Call, Trunk, Param, Log, Breadcrumb } = require('../schema')
+const {
+    Account,
+    Customer,
+    Contact,
+    Call,
+    Trunk,
+    Param,
+    Log,
+    Breadcrumb
+} = require('../schema')
+
+
 const CustomError = require('../utils/error')
 const formatNumber = require('../utils/formatNumber')
 const formatNumberForHumans = require('../utils/formatNumberForHumans')
 const humanDate = require('../utils/humanDate')
 const formatDate = require('../utils/formatDate')
-const { userById } = require('./users')
-const { addLog } = require('./logs')
+const {
+    userById
+} = require('./users')
+const {
+    addLog
+} = require('./logs')
 const request = require('request-promise')
 const md5 = require('../utils/md5')
-const moment = require('moment')
-const { sortBy } = require('lodash')
-const { createContact } = require('./contacts')
-const { createBreadcrumb, getBreadcrumbs } = require('./breadcrumbs')
+const {
+    sortBy
+} = require('lodash')
+const {
+    createContact
+} = require('./contacts')
+const {
+    createBreadcrumb,
+    getBreadcrumbs
+} = require('./breadcrumbs')
 
-async function updateLast({ userID, customerID, lastActivity }) {
+const moment = require('moment')
+moment.locale('ru')
+
+async function updateLast({
+    userID,
+    customerID,
+    lastActivity
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id, funnelSteps } } = await userById({ userID })
+    const {
+        account: {
+            _id,
+            funnelSteps
+        }
+    } = await userById({
+        userID
+    })
 
-    return await Customer.findOneAndUpdate(
-        { _id: customerID, user: userID, account: _id },
-        { $set: { lastUpdate: new Date(), lastActivity } },
-        { new: true })
+    return await Customer.findOneAndUpdate({
+        _id: customerID,
+        user: userID,
+        account: _id
+    }, {
+            $set: {
+                lastUpdate: new Date(),
+                lastActivity
+            }
+        }, {
+            new: true
+        })
 }
 
-async function setTask({ userID, customerID, when, what, time = '00:00' }) {
+async function setTask({
+    userID,
+    customerID,
+    when,
+    what,
+    time = '00:00'
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id } } = await userById({ userID })
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    })
 
     when = new Date(when)
 
     await createBreadcrumb({
-        userID, customerID,
+        userID,
+        customerID,
         data: {
             date: new Date(),
             type: 'task',
             comment: what,
-            task: { when, time }
+            task: {
+                when,
+                time
+            }
         }
     })
 
-    return await Customer.findOneAndUpdate(
-        { _id: customerID, user: userID, account: _id },
-        { $set: { 'task.what': what, 'task.when': when, 'task.time': time } },
-        { new: true })
+    return await Customer.findOneAndUpdate({
+        _id: customerID,
+        user: userID,
+        account: _id
+    }, {
+            $set: {
+                'task.what': what,
+                'task.when': when,
+                'task.time': time
+            }
+        }, {
+            new: true
+        })
 }
 
-async function leads({ userID, skip = 0 }) {
+async function leads({
+    userID,
+    skip = 0
+}) {
     /*
     Лиды: клиенты без менеджера или записанные за текущим менеджером.
     Формат: .....? 
@@ -62,13 +133,28 @@ async function leads({ userID, skip = 0 }) {
 
     if (typeof userID === 'string') userID = toObjectId(userID)
 
-    const { account: { _id } } = await userById({ userID })
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    })
 
-    const options = { skip, limit: 50 }
+    const options = {
+        skip,
+        limit: 50
+    }
     const customers = await Customer.find({
         account: _id,
         funnelStep: 'lead',
-        '$or': [{ user: { $exists: false } }, { user: userID }],
+        '$or': [{
+            user: {
+                $exists: false
+            }
+        }, {
+            user: userID
+        }],
     }).sort('_id').lean().exec()
 
     if (customers.length === 0) return customers
@@ -77,19 +163,33 @@ async function leads({ userID, skip = 0 }) {
 
     for (let customer of customers) {
         const state = !customer.user ? 'WAIT_RECALL' : 'WAIT_PROFILE'
-        result.push(Object.assign({}, customer, { state }))
+        result.push(Object.assign({}, customer, {
+            state
+        }))
     }
 
     return result
 }
 
 
-async function coldLeads({ userID, skip = 0 }) {
+async function coldLeads({
+    userID,
+    skip = 0
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
-    const { account: { _id } } = await userById({ userID })
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    })
 
-    const options = { skip, limit: 50 }
+    const options = {
+        skip,
+        limit: 50
+    }
     const customers = await Customer.find({
         account: _id,
         funnelStep: 'cold',
@@ -100,35 +200,67 @@ async function coldLeads({ userID, skip = 0 }) {
 }
 
 
-async function recents({ userID, skip = 0 }) {
+async function recents({
+    userID,
+    skip = 0
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
-    const { account: { _id } } = await userById({ userID })
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    })
 
-    const options = { skip, limit: 50 }
+    const options = {
+        skip,
+        limit: 50
+    }
     const customers = await Customer
         .find({
             account: _id,
             user: userID,
-            funnelStep: { $nin: ['lead'] },
-            lastActivity: { $exists: true }
+            funnelStep: {
+                $nin: ['lead']
+            },
+            lastActivity: {
+                $exists: true
+            }
         })
         .sort('-lastUpdate')
 
     return customers
 }
 
-async function createColdLead({ userID, data }) {
+async function createColdLead({
+    userID,
+    data
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
-    const { account: { _id } } = await userById({ userID })
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    })
 
     data.phones = formatNumber(data.phones)
-    const contact = await Contact.findOne({ account: _id, phone: data.phones }).populate('customer').exec()
+    const contact = await Contact.findOne({
+        account: _id,
+        phone: data.phones
+    }).populate('customer').exec()
 
     if (contact) throw new CustomError(`Номер уже сохранён под именем ${contact.name} у клиента ${contact.customer.name}`, 400)
 
-    const trunk = await Trunk.findOne({ account: _id, active: true, name: 'Холодные звонки' })
+    const trunk = await Trunk.findOne({
+        account: _id,
+        active: true,
+        name: 'Холодные звонки'
+    })
     if (!trunk || trunk === null)
         throw new CustomError('Не могу добавить клиента. Нет источников для холодного обзвона. Напишите об этой ошибке в поддержку', 404)
 
@@ -142,7 +274,8 @@ async function createColdLead({ userID, data }) {
     const createdLead = await newCustomer.save()
 
     await createBreadcrumb({
-        userID, customerID: createdLead._id,
+        userID,
+        customerID: createdLead._id,
         data: {
             date: new Date(),
             type: 'created'
@@ -150,7 +283,9 @@ async function createColdLead({ userID, data }) {
     })
 
     return await createContact({
-        userID, customerID: createdLead._id, data: {
+        userID,
+        customerID: createdLead._id,
+        data: {
             name: 'Основной',
             phone: createdLead.phones[0],
         }
@@ -158,14 +293,27 @@ async function createColdLead({ userID, data }) {
 }
 
 
-async function customerById({ userID, customerID, params = false }) {
+async function customerById({
+    userID,
+    customerID,
+    params = false
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const user = await userById({ userID })
-    const { account: { _id } } = user
+    const user = await userById({
+        userID
+    })
+    const {
+        account: {
+            _id
+        }
+    } = user
 
-    let customer = await Customer.findOne({ account: _id, _id: customerID })
+    let customer = await Customer.findOne({
+        account: _id,
+        _id: customerID
+    })
         .populate('account trunk user').exec()
 
     if (!customer)
@@ -183,10 +331,15 @@ async function customerById({ userID, customerID, params = false }) {
         customer.task.when = formatDate(customer.task.when, 'YYYY-MM-DD')
     }
 
-    const calls = await Call.find({ customer: customerID, account: _id }).sort('-_id').lean().exec()
+    const calls = await Call.find({
+        customer: customerID,
+        account: _id
+    }).sort('-_id').lean().exec()
 
     if (calls.length > 0) {
-        customer = Object.assign({}, customer, { calls })
+        customer = Object.assign({}, customer, {
+            calls
+        })
         customer.calls = customer.calls.map(call => {
             const clone = Object.assign({}, call)
             clone.date = humanDate(clone.date)
@@ -195,16 +348,29 @@ async function customerById({ userID, customerID, params = false }) {
     }
 
     if (params) {
-        const params = await Param.find({ account: _id }).lean().exec()
-        if (params) customer = Object.assign({}, customer, { params })
+        const params = await Param.find({
+            account: _id
+        }).lean().exec()
+        if (params) customer = Object.assign({}, customer, {
+            params
+        })
     }
 
     // getBreadcrumbs
-    const breadcrumbs = await getBreadcrumbs({ userID, customerID })
+    const breadcrumbs = await getBreadcrumbs({
+        userID,
+        customerID
+    })
     if (breadcrumbs.length > 0) {
-        customer = Object.assign({}, customer, { breadcrumbs })
+        customer = Object.assign({}, customer, {
+            breadcrumbs
+        })
         customer.breadcrumbs = customer.breadcrumbs.map(b => {
             const clone = JSON.parse(JSON.stringify(b))
+            clone.display = {
+                date: humanDate(clone.date),
+                dateFromNow: moment(clone.date).fromNow()
+            }
             clone.date = humanDate(clone.date)
             if (clone.type === 'call' || clone.type === 'callback')
                 clone.call.date = humanDate(clone.call.date)
@@ -212,23 +378,43 @@ async function customerById({ userID, customerID, params = false }) {
             return clone
         })
     } else {
-        customer = Object.assign({}, customer, { breadcrumbs: [] })
+        customer = Object.assign({}, customer, {
+            breadcrumbs: []
+        })
     }
 
     return customer
 }
 
-async function rejectCustomer({ userID, customerID, reason, comment = '', name = false }) {
+async function rejectCustomer({
+    userID,
+    customerID,
+    reason,
+    comment = '',
+    name = false
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id } } = await userById({ userID })
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    })
 
-    const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
+    const customer = await Customer.findOne({
+        _id: customerID,
+        account: _id
+    }).lean().exec()
 
     if (!customer) throw new CustomError('Клиент не найден. Напишите об этой ошибке в поддержку', 400)
 
-    const { funnelStep, user } = customer
+    const {
+        funnelStep,
+        user
+    } = customer
     const query = {
         $set: {
             funnelStep: 'reject',
@@ -246,34 +432,58 @@ async function rejectCustomer({ userID, customerID, reason, comment = '', name =
     if (name) query.$set.name = name
 
     await createBreadcrumb({
-        userID, customerID: customer._id,
+        userID,
+        customerID: customer._id,
         data: {
             date: new Date(),
             type: 'reject',
-            reason, comment,
+            reason,
+            comment,
             previousStep: funnelStep
         }
     })
 
-    return await Customer.findOneAndUpdate(
-        { _id: customerID, account: _id }, query, { new: true }
-    )
+    return await Customer.findOneAndUpdate({
+        _id: customerID,
+        account: _id
+    }, query, {
+            new: true
+        })
 }
 
 
-async function dealCustomer({ userID, customerID, amount, comment = '' }) {
+async function dealCustomer({
+    userID,
+    customerID,
+    amount,
+    comment = ''
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id } } = await userById({ userID })
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    })
 
-    const customer = await Customer.findOne({ _id: customerID, account: _id, user: userID }).lean().exec()
+    const customer = await Customer.findOne({
+        _id: customerID,
+        account: _id,
+        user: userID
+    }).lean().exec()
 
     if (!customer) throw new CustomError('Клиент не найден. Напишите об этой ошибке в поддержку', 400)
 
-    const { funnelStep } = customer
+    const {
+        funnelStep
+    } = customer
     const deal = await Customer.findOneAndUpdate({
-        _id: customerID, account: _id, user: userID
+        _id: customerID,
+        account: _id,
+        user: userID
     }, {
             $set: {
                 funnelStep: 'deal',
@@ -285,14 +495,18 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
                     date: new Date()
                 },
             }
-        }, { new: true })
+        }, {
+            new: true
+        })
 
     await createBreadcrumb({
-        userID, customerID,
+        userID,
+        customerID,
         data: {
             date: new Date(),
             type: 'deal',
-            amount, comment,
+            amount,
+            comment,
             previousStep: funnelStep
         }
     })
@@ -301,13 +515,29 @@ async function dealCustomer({ userID, customerID, amount, comment = '' }) {
 }
 
 
-async function closedCustomers({ userID, filter = 'all' }) {
+async function closedCustomers({
+    userID,
+    filter = 'all'
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
 
-    const { account: { _id } } = await userById({ userID })
-    const query = { account: _id, user: userID }
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    })
+    const query = {
+        account: _id,
+        user: userID
+    }
 
-    if (filter === 'all') query.$or = [{ funnelStep: 'reject' }, { funnelStep: 'deal' }]
+    if (filter === 'all') query.$or = [{
+        funnelStep: 'reject'
+    }, {
+        funnelStep: 'deal'
+    }]
     if (filter === 'reject') query.funnelStep = 'reject'
     if (filter === 'deal') query.funnelStep = 'deal'
 
@@ -316,57 +546,91 @@ async function closedCustomers({ userID, filter = 'all' }) {
     const reject = customers.filter(customer => customer.funnelStep === 'reject')
     const deal = customers.filter(customer => customer.funnelStep === 'deal')
 
-    return { reject, deal }
+    return {
+        reject,
+        deal
+    }
 }
 
-async function comeBackCustomer({ userID, customerID }) {
+async function comeBackCustomer({
+    userID,
+    customerID
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id } } = await userById({ userID })
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    })
 
-    const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
+    const customer = await Customer.findOne({
+        _id: customerID,
+        account: _id
+    }).lean().exec()
 
     if (!customer) throw new CustomError('Клиент не найден', 400)
 
-    const reopened = await Customer.findOneAndUpdate(
-        { _id: customerID, account: _id },
-        {
+    const reopened = await Customer.findOneAndUpdate({
+        _id: customerID,
+        account: _id
+    }, {
             $set: {
                 funnelStep: 'in-progress',
                 lastUpdate: new Date()
             }
-        }, { new: true })
+        }, {
+            new: true
+        })
 
     await createBreadcrumb({
-        userID, customerID,
+        userID,
+        customerID,
         data: {
             date: new Date(),
             type: 'reopen'
         }
     })
 
-
     return reopened
 }
 
-async function updateCustomer({ userID, customerID, body }) {
+async function updateCustomer({
+    userID,
+    customerID,
+    body
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id } } = await userById({ userID })
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    })
 
-    const customer = await Customer.findOne({ _id: customerID, account: _id }).lean().exec()
+    const customer = await Customer.findOne({
+        _id: customerID,
+        account: _id
+    }).lean().exec()
     if (!customer) throw new CustomError('Клиент не найден или назначен на другого менеджера', 400)
 
-    const { funnelStep } = customer
+    const {
+        funnelStep
+    } = customer
 
     if (funnelStep === 'lead' || funnelStep === 'cold') {
         body.funnelStep = 'in-progress'
         body.user = userID
 
         await createBreadcrumb({
-            userID, customerID,
+            userID,
+            customerID,
             data: {
                 date: new Date(),
                 type: 'in-progress',
@@ -375,13 +639,22 @@ async function updateCustomer({ userID, customerID, body }) {
         })
     }
 
-    return await Customer.findOneAndUpdate({ _id: customerID }, { $set: body }, { new: true })
+    return await Customer.findOneAndUpdate({
+        _id: customerID
+    }, {
+            $set: body
+        }, {
+            new: true
+        })
 }
 
 
 // TODO: куча треша с эмоджи в описаниях задачи и прочим
 // Оставляю пока так в надежде, что выпилим воронку к хуям
-async function funnel({ userID, today = false }) {
+async function funnel({
+    userID,
+    today = false
+}) {
     function getId(name) {
         const hash = md5(name)
         return hash.replace(/[0-9]/g, '') + hash.replace(/\D/g, '')
@@ -409,11 +682,24 @@ async function funnel({ userID, today = false }) {
 
     if (typeof userID === 'string') userID = toObjectId(userID)
 
-    const { account: { _id, funnelSteps } } = await userById({ userID })
+    const {
+        account: {
+            _id,
+            funnelSteps
+        }
+    } = await userById({
+        userID
+    })
 
     funnelSteps.unshift('in-progress')
 
-    const query = { account: _id, user: userID, funnelStep: { $in: funnelSteps } }
+    const query = {
+        account: _id,
+        user: userID,
+        funnelStep: {
+            $in: funnelSteps
+        }
+    }
     today && (query['task.when'] = todayRange())
     const customers = await Customer.find(query).lean().exec()
 
@@ -421,7 +707,10 @@ async function funnel({ userID, today = false }) {
 
     const listOfCustomers = customers.map(customer => {
         if (!customer.task) {
-            customer.task = { what: 'Нет задачи 😡', timestamp: 0 }
+            customer.task = {
+                what: 'Нет задачи 😡',
+                timestamp: 0
+            }
             return customer
         }
 
@@ -447,18 +736,32 @@ async function funnel({ userID, today = false }) {
         result.push({
             name: step,
             id: getId(step),
-            customers: sortBy(listOfCustomers.filter(customer => customer.funnelStep === step), ({ task: { timestamp } }) => timestamp, ['desc'])
+            customers: sortBy(listOfCustomers.filter(customer => customer.funnelStep === step), ({
+                task: {
+                    timestamp
+                }
+            }) => timestamp, ['desc'])
         })
         return result
     }, [])
 }
 
 
-async function stepDown({ userID, customerID }) {
+async function stepDown({
+    userID,
+    customerID
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id, funnelSteps } } = await userById({ userID })
+    const {
+        account: {
+            _id,
+            funnelSteps
+        }
+    } = await userById({
+        userID
+    })
 
     const customer = await Customer.findOne({
         _id: customerID,
@@ -472,10 +775,17 @@ async function stepDown({ userID, customerID }) {
 
     const index = funnelSteps.indexOf(customer.funnelStep)
 
-    return await Customer.findOneAndUpdate(
-        { _id: customerID },
-        { $set: { funnelStep: funnelSteps[index + 1], lastUpdate: new Date(), lastActivity: 'прогресс в воронке' } },
-        { new: true })
+    return await Customer.findOneAndUpdate({
+        _id: customerID
+    }, {
+            $set: {
+                funnelStep: funnelSteps[index + 1],
+                lastUpdate: new Date(),
+                lastActivity: 'прогресс в воронке'
+            }
+        }, {
+            new: true
+        })
 }
 
 
@@ -487,7 +797,10 @@ async function search({
     fields = null
 }) {
 
-    function getURL({ funnelStep, _id }) {
+    function getURL({
+        funnelStep,
+        _id
+    }) {
         const prefix = 'new'
         if (funnelStep === 'lead') return `http://${prefix}.mindsales-crm.com/leads/hot/${_id}?pm_source=from_search`
         if (funnelStep === 'cold') return `http://${prefix}.mindsales-crm.com/leads/cold/${_id}?pm_source=from_search`
@@ -499,16 +812,37 @@ async function search({
 
     if (step && searchQuery === 'undefined') searchQuery = ''
 
-    const searchOptions = [
-        { name: { '$regex': searchQuery, '$options': 'i' } },
-        { phone: { '$regex': searchQuery.replace(/\D/g, ''), '$options': 'i' } }
+    const searchOptions = [{
+        name: {
+            '$regex': searchQuery,
+            '$options': 'i'
+        }
+    },
+    {
+        phone: {
+            '$regex': searchQuery.replace(/\D/g, ''),
+            '$options': 'i'
+        }
+    }
     ]
 
-    const { account: { _id } } = await userById({ userID }, options)
+    const {
+        account: {
+            _id
+        }
+    } = await userById({
+        userID
+    }, options)
 
     const query = {
         account: _id,
-        '$or': [{ user: { $exists: false } }, { user: userID }],
+        '$or': [{
+            user: {
+                $exists: false
+            }
+        }, {
+            user: userID
+        }],
     }
 
     if (step) query.funnelStep = step
@@ -517,7 +851,10 @@ async function search({
     const skip = options.skip ? parseInt(options.skip) : 0
     const limit = options.limit ? parseInt(options.limit) : 10
 
-    const contacts = await Contact.find(query, fields, { skip, limit }).populate('customer').exec()
+    const contacts = await Contact.find(query, fields, {
+        skip,
+        limit
+    }).populate('customer').exec()
 
     return contacts.map(contact => ({
         name: contact.customer.name,
@@ -527,20 +864,34 @@ async function search({
 }
 
 
-async function call({ userID, customerID }) {
+async function call({
+    userID,
+    customerID
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id, name }, phones } = await userById({ userID })
-    const customer = await Customer.findOne({ _id: customerID, account: _id }).populate('trunk').exec()
+    const {
+        account: {
+            _id,
+            name
+        },
+        phones
+    } = await userById({
+        userID
+    })
+    const customer = await Customer.findOne({
+        _id: customerID,
+        account: _id
+    }).populate('trunk').exec()
 
     if (!customer || customer === null) throw new CustomError('Клиент не найден', 404)
 
     addLog({
-        who: userID, type: 'callback', what: 'запрос на коллбек',
-        payload: {
-
-        }
+        who: userID,
+        type: 'callback',
+        what: 'запрос на коллбек',
+        payload: {}
     })
 
     // if (customer.user && !customer.user._id.equals(userID)) {
@@ -548,6 +899,8 @@ async function call({ userID, customerID }) {
     // }
 
     // if (!customer.user) await Customer.update({ _id: customerID }, { user: userID })
+
+    const requestTimestamp = new Date().getTime();
 
     const qs = {
         cn: customer.phones[0].replace('+7', '8'),
@@ -559,15 +912,23 @@ async function call({ userID, customerID }) {
     const options = {
         uri: 'http://185.22.65.50/call.php',
         qs,
-        headers: { 'User-Agent': 'Mindsales-CRM' },
+        headers: {
+            'User-Agent': 'Mindsales-CRM'
+        },
         json: true
     }
 
     const response = await request(options)
 
     addLog({
-        who: userID, type: 'callback', what: 'запрос на коллбек',
-        payload: { qs, response }
+        who: userID,
+        type: 'callback',
+        what: 'запрос на коллбек',
+        payload: {
+            qs,
+            response,
+            requestTimestamp
+        }
     })
 
     return {
@@ -576,56 +937,93 @@ async function call({ userID, customerID }) {
             un: phones[0].replace('+7', '8'),
             tr: customer.trunk.phone.replace('+7', '8')
         },
-        response
+        response,
+        requestTimestamp
     }
 }
 
-async function coldCall({ userID, customerID }) {
+async function coldCall({
+    userID,
+    customerID
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const { account: { _id }, phones } = await userById({ userID })
+    const {
+        account: {
+            _id
+        },
+        phones
+    } = await userById({
+        userID
+    })
     const customer = await Customer
-        .findOne({ _id: customerID, user: userID, account: _id })
+        .findOne({
+            _id: customerID,
+            user: userID,
+            account: _id
+        })
         .populate('trunk').exec()
 
     const coldTrunk = await Trunk.findOne({
-        account: _id, active: true,
+        account: _id,
+        active: true,
         name: 'Холодные звонки'
     })
 
     if (!coldTrunk || coldTrunk === null)
         throw new CustomError('Не найден источник для холодных лидов', 404)
 
+    const requestTimestamp = new Date().getTime();
+
     const qs = {
         cn: customer.phones[0].replace('+7', '8'),
         un: phones[0].replace('+7', '8'),
         tr: coldTrunk.phone.replace('+7', '8'),
         call_id: 'cold_call',
-        secret_key: '2c22d5c2ed37ea03db53ff931e7a9cf6'
+        secret_key: '2c22d5c2ed37ea03db53ff931e7a9cf6',
+        request_timestamp: requestTimestamp
     }
 
     const options = {
-        uri: 'http://185.22.65.50/cold_call.php', qs,
-        headers: { 'User-Agent': 'Request-Promise' },
+        uri: 'http://185.22.65.50/cold_call.php',
+        qs,
+        headers: {
+            'User-Agent': 'Request-Promise'
+        },
         json: true
     }
 
     const response = await request(options)
 
     addLog({
-        who: userID, type: 'callback', what: 'запрос на хол. коллбек',
-        payload: { qs, response }
+        who: userID,
+        type: 'callback',
+        what: 'запрос на хол. коллбек',
+        payload: {
+            qs,
+            response,
+            requestTimestamp
+        }
     })
 
-    return { params: qs, response }
+    return {
+        params: qs,
+        response,
+        requestTimestamp
+    }
 }
 
-async function isCustomerOwner({ userID, customerID }) {
+async function isCustomerOwner({
+    userID,
+    customerID
+}) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof customerID === 'string') customerID = toObjectId(customerID)
 
-    const customer = await Customer.findOne({ _id: customerID })
+    const customer = await Customer.findOne({
+        _id: customerID
+    })
         .populate('user').exec()
 
     if (!customer || customer === null)
