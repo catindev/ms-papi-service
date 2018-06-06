@@ -249,9 +249,9 @@ router.get('/customers/:customerID/call', (request, resp, next) => {
 
 
 router.get('/customers/:customerID/cold.call', (request, resp, next) => {
-    const { userID, params: { customerID } } = request
+    const { userID, params: { customerID }, query: { client_timestamp } } = request
 
-    const client_timestamp = new Date().getTime();
+    console.log(':D Callback to ', customerID, 'from', userID, 'at', client_timestamp);
     addLog({
         who: userID, type: 'callback', what: 'запрос на холодный коллбек',
         payload: `ObjectId("${customerID}"), client_timestamp=${client_timestamp}`
