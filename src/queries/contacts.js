@@ -96,6 +96,8 @@ async function callbackToContact({ userID, contactID }) {
     if (!contact || contact === null)
         throw new CustomError(`Не могу найти контакт и позвонить ему. Возможно он был удалён`, 400)
 
+    const requestTimestamp = new Date().getTime();
+
     const options = {
         uri: 'http://185.22.65.50/cold_call.php',
         qs: {
@@ -105,8 +107,9 @@ async function callbackToContact({ userID, contactID }) {
             call_id: 'cold_call',
             secret_key: '2c22d5c2ed37ea03db53ff931e7a9cf6',
             // debug
-            crm_user_id, 
-            crm_customer_status: contact.customer.funnelStep
+            crm_user_id,
+            crm_customer_status: contact.customer.funnelStep,
+            request_timestamp: requestTimestamp
         },
         headers: { 'User-Agent': 'Mindsales-CRM' },
         json: true
@@ -120,7 +123,8 @@ async function callbackToContact({ userID, contactID }) {
             un: phones[0].replace('+7', '8'),
             tr: contact.customer.trunk.phone.replace('+7', '8')
         },
-        response
+        response,
+        requestTimestamp
     }
 }
 
