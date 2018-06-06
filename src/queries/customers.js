@@ -887,13 +887,6 @@ async function call({
 
     if (!customer || customer === null) throw new CustomError('Клиент не найден', 404)
 
-    addLog({
-        who: userID,
-        type: 'callback',
-        what: 'запрос на коллбек',
-        payload: {}
-    })
-
     // if (customer.user && !customer.user._id.equals(userID)) {
     //     // Сценарий — чужой клиент
     // }
