@@ -47,7 +47,7 @@ async function recentCalls({ userID, fromDate = false }) {
             } = call
 
             if (!customer) {
-                console.log(index, call._id)
+                //console.log(index, call._id)
                 return false
             }
 
