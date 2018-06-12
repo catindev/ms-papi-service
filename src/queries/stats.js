@@ -423,8 +423,8 @@ async function badLeadsProfilesForStats({ userID, start, end, trunk = false, man
 
     if (start || end) {
         query['reject.date'] = {}
-        if (start) query['reject.date'].$gte = start
-        if (end) query['reject.date'].$lt = end
+        if (start) query['reject.date'].$gte = new Date(start)
+        if (end) query['reject.date'].$lt = new Date(end)
     }
 
     if (trunk) query.trunk = trunk
