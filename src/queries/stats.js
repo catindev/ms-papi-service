@@ -1,10 +1,18 @@
 const toObjectId = require('mongoose').Types.ObjectId
-const { Account, Customer, User, Param, Trunk, Call } = require('../schema')
+const { Account, Customer, User, Param, Trunk, Call, Breadcrumb } = require('../schema')
 const CustomError = require('../utils/error')
 const { userById, getUsers } = require('./users')
 const { findIndex, isArray, orderBy, sortBy } = require('lodash')
 const md5 = require('../utils/md5')
 const humanDate = require('../utils/humanDate')
+
+const moment = require('moment')
+moment.locale('ru')
+
+function getLastUpdate(breadcrumbs) {
+    if (!breadcrumbs || breadcrumbs.length === 0) return 'не известно'
+    return moment(breadcrumbs[breadcrumbs.length - 1].date).fromNow()
+}
 
 // TODO: проверять на босса
 
@@ -290,9 +298,6 @@ async function incomingCallsStats({ userID, start, end, interval }) {
 
 
 async function funnelAll({ userID, manager = false }) {
-    const moment = require('moment')
-    moment.locale('ru')
-    const { sortBy } = require('lodash')
 
     function getId(name) {
         const hash = md5(name)
@@ -317,11 +322,6 @@ async function funnelAll({ userID, manager = false }) {
         const d = moment(new Date(date))
         const today = moment().startOf('day')
         return d.isSame(today, 'd')
-    }
-
-    function getLastUpdate(breadcrumbs) {
-        if (breadcrumbs.length === 0) return 'не известно'
-        return moment(breadcrumbs[breadcrumbs.length - 1].date).fromNow()
     }
 
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -419,6 +419,8 @@ async function badLeadsProfilesForStats({ userID, start, end, trunk = false, man
         'reject.previousStep': 'lead'
     }
 
+    console.log(':D badLeadsProfilesForStats', start, end, typeof start, typeof end);
+
     if (start || end) {
         query['reject.date'] = {}
         if (start) query['reject.date'].$gte = start
@@ -475,7 +477,10 @@ async function qeuedLeadsForStats({ userID, start, end, trunk = false, manager =
     if (trunk) query.trunk = trunk
     if (manager) query.user = manager
 
-    return await Customer.find(query).sort('-created').populate('trunk').lean().exec()
+    const customers = await Customer.find(query).sort('-created').populate('trunk breadcrumbs user').lean().exec()
+
+    return customers
+    // return customers.map(({ _id, name, trunk, user }) => ({ _id, name, lastUpdate: getLastUpdate(breadcrumbs), trunk: trunk.name, user: user.name }))
 }
 
 async function customersByUsers({ userID }) {
