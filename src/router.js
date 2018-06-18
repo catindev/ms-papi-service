@@ -511,8 +511,8 @@ router.get('/stats/leads/fucked', (request, response, next) => {
 })
 
 router.get('/stats/funnel', (request, response, next) => {
-    const { userID, query: { manager } } = request
-    funnelAll({ userID, manager })
+    const { userID, query: { manager, start, end } } = request
+    funnelAll({ userID, manager, start, end })
         .then(stats => response.json({ status: 200, stats }))
         .catch(next)
 })
