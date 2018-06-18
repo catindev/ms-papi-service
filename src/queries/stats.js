@@ -297,7 +297,7 @@ async function incomingCallsStats({ userID, start, end, interval }) {
 }
 
 
-async function funnelAll({ userID, manager = false }) {
+async function funnelAll({ userID, start, end, manager = false }) {
 
     function getId(name) {
         const hash = md5(name)
@@ -332,6 +332,13 @@ async function funnelAll({ userID, manager = false }) {
 
     const query = { account: _id, funnelStep: { $in: funnelSteps } }
     manager && (query.user = manager)
+    
+    if (start || end) {
+        query.created = {}
+        if (start) query.created.$gte = start
+        if (end) query.created.$lt = end
+    }
+
     const customers = await Customer.find(query).populate('user breadcrumbs').select('_id name funnelStep user breadcrumbs').lean().exec()
 
     if (!customers || customers.length === 0) return []
@@ -419,8 +426,7 @@ async function badLeadsProfilesForStats({ userID, start, end, trunk = false, man
         'reject.previousStep': 'lead'
     }
 
-    console.log(':D badLeadsProfilesForStats', start, end, typeof start, typeof end);
-
+    // TODO: даные  не согласуются с фичей эффективность рекламных источников
     if (start || end) {
         query['reject.date'] = {}
         if (start) query['reject.date'].$gte = new Date(start)
