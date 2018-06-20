@@ -3,46 +3,43 @@ const { Session, User, Password } = require('../schema')
 const { userById } = require('./users')
 const md5 = require('../utils/md5')
 const CustomError = require('../utils/error')
-const formatNumber = require('../utils/formatNumber')
+// const formatNumber = require('../utils/formatNumber')
+function formatNumber(phone) {
+	phone = phone.replace(/\D/g, '')
+	if (phone[0] === '8') phone = phone.replace('8', '')
+	return phone
+}
+
 const request = require('request-promise')
 
-const {
-	addLog
-} = require('./logs')
+const { addLog } = require('./logs')
 
 async function createPassword({ phone }) {
-	console.log(':D smsc original', phone)
+	const ephone = phone
+	phone = formatNumber(phone)
 
-	const formattedPhone = formatNumber(phone, false)
-	console.log(':D smsc formatted', phone)
-
-	const user = await User.findOne({ phones: formattedPhone })
-
-
-	if (!user || user === null) throw new CustomError(`Номер ${phone} у нас не зарегистрирован`, 400)
+	const user = await User.findOne({ $or: [{ phones: phone }, { phones: `+${phone}` }, { phones: `+7${phone}` }, { phones: `8${phone}` }] })
+	if (!user || user === null) throw new CustomError(`Номер ${ephone} у нас не зарегистрирован`, 400)
 
 	const code = Math.floor(1000 + Math.random() * 9000)
-	console.log(':D smsc code', code)
 
 	const newPassword = new Password({ user: user._id, code: md5(`${code}`) })
 	newPassword.save()
 
-	const response = request({
+	const response = await request({
 		uri: 'http://smsc.ru/sys/send.php',
 		qs: {
 			login: 'catindev', psw: '578e493c84f81d6f07046a4bb73bdaa0',
-			phones: formattedPhone, mes: `Пароль для входа в Майндсейлс — ${code}`,
+			phones: phone, mes: `Пароль для входа в Майндсейлс — ${code}`,
 			period: '0.1', charset: 'utf-8'
 		}
 	})
 
 	addLog({
+		who: 'Unauthorized',
 		type: 'login',
 		what: 'вход через SMSC',
-		payload: {
-			phone,
-			response
-		}
+		payload: { phone, response }
 	})
 
 	return response

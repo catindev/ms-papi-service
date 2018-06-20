@@ -54,7 +54,10 @@ router.post('/sessions/password', (request, response, next) => {
     })
 
     createPassword({ phone })
-        .then(send => response.status(200).json({ status: 200, send }))
+        .then(send => {
+            console.log('SMSC', phone, send)
+            response.status(200).json({ status: 200, send })
+        })
         .catch(next)
 })
 
