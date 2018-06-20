@@ -11,11 +11,19 @@ const {
 } = require('./logs')
 
 async function createPassword({ phone }) {
+	console.log(':D smsc original', phone)
+
 	const formattedPhone = formatNumber(phone, false)
+	console.log(':D smsc formatted', phone)
+
 	const user = await User.findOne({ phones: formattedPhone })
+
+
 	if (!user || user === null) throw new CustomError(`Номер ${phone} у нас не зарегистрирован`, 400)
 
 	const code = Math.floor(1000 + Math.random() * 9000)
+	console.log(':D smsc code', code)
+
 	const newPassword = new Password({ user: user._id, code: md5(`${code}`) })
 	newPassword.save()
 
