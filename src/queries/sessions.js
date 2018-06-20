@@ -6,6 +6,10 @@ const CustomError = require('../utils/error')
 const formatNumber = require('../utils/formatNumber')
 const request = require('request-promise')
 
+const {
+	addLog
+} = require('./logs')
+
 async function createPassword({ phone }) {
 	const formattedPhone = formatNumber(phone, false)
 	const user = await User.findOne({ phones: formattedPhone })
@@ -15,7 +19,7 @@ async function createPassword({ phone }) {
 	const newPassword = new Password({ user: user._id, code: md5(`${code}`) })
 	newPassword.save()
 
-	return request({
+	const response = request({
 		uri: 'http://smsc.ru/sys/send.php',
 		qs: {
 			login: 'catindev', psw: '578e493c84f81d6f07046a4bb73bdaa0',
@@ -23,6 +27,17 @@ async function createPassword({ phone }) {
 			period: '0.1', charset: 'utf-8'
 		}
 	})
+
+	addLog({
+		type: 'login',
+		what: 'вход через SMSC',
+		payload: {
+			phone,
+			response
+		}
+	})
+
+	return response
 }
 
 async function verifyPassword({ code }) {
