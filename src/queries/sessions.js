@@ -21,6 +21,11 @@ async function createPassword({ phone }) {
 	const user = await User.findOne({ $or: [{ phones: phone }, { phones: `+${phone}` }, { phones: `+7${phone}` }, { phones: `8${phone}` }] })
 	if (!user || user === null) throw new CustomError(`Номер ${ephone} у нас не зарегистрирован`, 400)
 
+	let userPhone = '';
+	for (let number of user.phones) {
+		if (`+7${phone}` === number) userPhone = number
+	}
+
 	const code = Math.floor(1000 + Math.random() * 9000)
 
 	const newPassword = new Password({ user: user._id, code: md5(`${code}`) })
@@ -30,7 +35,7 @@ async function createPassword({ phone }) {
 		uri: 'http://smsc.ru/sys/send.php',
 		qs: {
 			login: 'catindev', psw: '578e493c84f81d6f07046a4bb73bdaa0',
-			phones: phone, mes: `Пароль для входа в Майндсейлс — ${code}`,
+			phones: userPhone, mes: `Пароль для входа в Майндсейлс — ${code}`,
 			period: '0.1', charset: 'utf-8'
 		}
 	})
