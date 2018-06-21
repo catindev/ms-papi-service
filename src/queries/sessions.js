@@ -23,7 +23,8 @@ async function createPassword({ phone }) {
 
 	let userPhone = '';
 	for (let number of user.phones) {
-		if (`+7${phone}` === number) userPhone = number
+		number = number.replace(/\D/g, '')
+		if (phone === number) userPhone = number
 	}
 
 	const code = Math.floor(1000 + Math.random() * 9000)
