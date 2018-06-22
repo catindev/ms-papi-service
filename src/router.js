@@ -28,7 +28,8 @@ const {
     incomingCallsStats, funnelAll, statsLeadsFromTrunks2,
     rejectCustomersForStats, dealCustomersForStats, badLeadsProfilesForStats,
     qeuedLeadsForStats,
-    usersStats, customersByUsers
+    usersStats, customersByUsers,
+    getCallsStatsFromATS
 } = require('./queries/stats')
 const { allAccounts } = require('./queries/accounts')
 const { userById, getUsers } = require('./queries/users')
@@ -424,11 +425,11 @@ router.get('/trunks', (request, response, next) => {
         .catch(next)
 })
 
-// !!! чинить !!! тут валится ексепшн непонятный. апи для графика входящих
 router.get('/stats/calls', (request, response, next) => {
-    const { userID, query: { start, end, interval } } = request
-    incomingCallsStats({ userID, start, end, interval })
-        .then(stats => response.json({ status: 200, stats }))
+    const { userID, query: { start, end, type } } = request
+
+    getCallsStatsFromATS({ userID, start, end, type })
+        .then(items => response.json({ status: 200, items }))
         .catch(next)
 })
 

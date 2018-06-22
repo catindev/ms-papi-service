@@ -5,6 +5,7 @@ const { userById, getUsers } = require('./users')
 const { findIndex, isArray, orderBy, sortBy } = require('lodash')
 const md5 = require('../utils/md5')
 const humanDate = require('../utils/humanDate')
+const request = require('request-promise')
 
 const moment = require('moment')
 moment.locale('ru')
@@ -15,6 +16,20 @@ function getLastUpdate(breadcrumbs) {
 }
 
 // TODO: проверять на босса
+
+async function getCallsStatsFromATS({ userID, start, end, type }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    const { account: { _id } } = await userById({ userID })
+
+    const qs = `?interval_type=${type}&account_id=${_id}&interval_start=${start}&interval_end=${end}`
+
+    const response = await request({
+        uri: `https://pbxrec.mindsales.kz/mstelbot/newgraf.php${qs}`,
+        json: true
+    })
+
+    return response
+}
 
 async function fuckedLeads({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
@@ -332,12 +347,14 @@ async function funnelAll({ userID, start, end, manager = false }) {
 
     const query = { account: _id, funnelStep: { $in: funnelSteps } }
     manager && (query.user = manager)
-    
+
     if (start || end) {
         query.created = {}
         if (start) query.created.$gte = start
         if (end) query.created.$lt = end
     }
+
+    console.log(query)
 
     const customers = await Customer.find(query).populate('user breadcrumbs').select('_id name funnelStep user breadcrumbs').lean().exec()
 
@@ -567,5 +584,8 @@ module.exports = {
     qeuedLeadsForStats,
 
     // users
-    usersStats, customersByUsers
+    usersStats, customersByUsers,
+
+    // ATS API
+    getCallsStatsFromATS
 }
