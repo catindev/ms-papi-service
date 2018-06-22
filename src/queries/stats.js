@@ -401,7 +401,7 @@ async function closedCustomersStats({ userID, filter = '', start, end }) {
     return { reject, deal }
 }
 
-async function rejectCustomersForStats({ userID, start, end, trunk = false, manager = false }) {
+async function rejectCustomersForStats({ userID, start, end, trunk = false, manager = false, by_created = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof trunk === 'string') trunk = toObjectId(trunk)
     if (typeof manager === 'string') manager = toObjectId(manager)
@@ -412,17 +412,23 @@ async function rejectCustomersForStats({ userID, start, end, trunk = false, mana
         'reject.previousStep': { $nin: ['lead', 'cold', 'deal', 'reject'] }
     }
 
-    if (start || end) {
-        query['reject.date'] = {}
-        if (start) query['reject.date'].$gte = start
-        if (end) query['reject.date'].$lt = end
+    if (by_created && (start || end)) {
+        query['created'] = {}
+        if (start) query['created'].$gte = start
+        if (end) query['created'].$lt = end
+    } else {
+        if (start || end) {
+            query['reject.date'] = {}
+            if (start) query['reject.date'].$gte = start
+            if (end) query['reject.date'].$lt = end
+        }
     }
 
     if (trunk) query.trunk = trunk
     if (manager) query.user = manager
 
     const customers = await Customer.find(query)
-        .sort('-reject.date').populate('user').lean().exec()
+        .sort(by_created ? '-created' : '-reject.date').populate('user').lean().exec()
 
     return customers.map(({ name, reject, user, _id }) => ({
         _id, name,
@@ -432,7 +438,7 @@ async function rejectCustomersForStats({ userID, start, end, trunk = false, mana
     }))
 }
 
-async function badLeadsProfilesForStats({ userID, start, end, trunk = false, manager = false }) {
+async function badLeadsProfilesForStats({ userID, start, end, trunk = false, manager = false, by_created = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof trunk === 'string') trunk = toObjectId(trunk)
     if (typeof manager === 'string') manager = toObjectId(manager)
@@ -443,18 +449,23 @@ async function badLeadsProfilesForStats({ userID, start, end, trunk = false, man
         'reject.previousStep': 'lead'
     }
 
-    // TODO: даные  не согласуются с фичей эффективность рекламных источников
-    if (start || end) {
-        query['reject.date'] = {}
-        if (start) query['reject.date'].$gte = new Date(start)
-        if (end) query['reject.date'].$lt = new Date(end)
+    if (by_created && (start || end)) {
+        query['created'] = {}
+        if (start) query['created'].$gte = start
+        if (end) query['created'].$lt = end
+    } else {
+        if (start || end) {
+            query['reject.date'] = {}
+            if (start) query['reject.date'].$gte = start
+            if (end) query['reject.date'].$lt = end
+        }
     }
 
     if (trunk) query.trunk = trunk
     if (manager) query.user = manager
 
     const customers = await Customer.find(query)
-        .sort('-reject.date').populate('user').lean().exec()
+        .sort(by_created ? '-created' : '-reject.date').populate('user').lean().exec()
 
     return customers.map(({ name, reject, user, _id }) => ({
         _id, name,
@@ -464,7 +475,7 @@ async function badLeadsProfilesForStats({ userID, start, end, trunk = false, man
     }))
 }
 
-async function dealCustomersForStats({ userID, start, end, trunk = false, manager = false }) {
+async function dealCustomersForStats({ userID, start, end, trunk = false, manager = false, by_created = false }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     if (typeof trunk === 'string') trunk = toObjectId(trunk)
     if (typeof manager === 'string') manager = toObjectId(manager)
@@ -472,17 +483,24 @@ async function dealCustomersForStats({ userID, start, end, trunk = false, manage
     const { account: { _id } } = await userById({ userID })
     const query = { account: _id, funnelStep: 'deal' }
 
-    if (start || end) {
-        query['deal.date'] = {}
-        if (start) query['deal.date'].$gte = start
-        if (end) query['deal.date'].$lt = end
+    if (by_created && (start || end)) {
+        query['created'] = {}
+        if (start) query['created'].$gte = start
+        if (end) query['created'].$lt = end
+    } else {
+        if (start || end) {
+            query['deal.date'] = {}
+            if (start) query['deal.date'].$gte = start
+            if (end) query['deal.date'].$lt = end
+        }
     }
+
 
     if (trunk) query.trunk = trunk
     if (manager) query.user = manager
 
     return await Customer.find(query)
-        .sort('-deal.date').lean().exec()
+        .sort(by_created ? '-created' : '-deal.date').lean().exec()
 }
 
 async function qeuedLeadsForStats({ userID, start, end, trunk = false, manager = false }) {

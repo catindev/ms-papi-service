@@ -448,25 +448,25 @@ router.get('/stats/closed', (request, response, next) => {
 })
 
 router.get('/stats/reject/profiles', (request, response, next) => {
-    const { userID, query: { start, end, manager, trunk } } = request
+    const { userID, query: { start, end, manager, trunk, by_created } } = request
 
-    rejectCustomersForStats({ userID, start, end, manager, trunk })
+    rejectCustomersForStats({ userID, start, end, manager, trunk, by_created })
         .then(customers => response.json({ status: 200, customers }))
         .catch(next)
 })
 
 router.get('/stats/badleads/profiles', (request, response, next) => {
-    const { userID, query: { start, end, manager, trunk } } = request
+    const { userID, query: { start, end, manager, trunk, by_created } } = request
 
-    badLeadsProfilesForStats({ userID, start, end, manager, trunk })
+    badLeadsProfilesForStats({ userID, start, end, manager, trunk, by_created })
         .then(customers => response.json({ status: 200, customers }))
         .catch(next)
 })
 
 router.get('/stats/deal/profiles', (request, response, next) => {
-    const { userID, query: { start, end, manager, trunk } } = request
+    const { userID, query: { start, end, manager, trunk, by_created } } = request
 
-    dealCustomersForStats({ userID, start, end, manager, trunk })
+    dealCustomersForStats({ userID, start, end, manager, trunk, by_created })
         .then(customers => response.json({ status: 200, count: customers.length, customers }))
         .catch(next)
 })
