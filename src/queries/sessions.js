@@ -6,8 +6,19 @@ const CustomError = require('../utils/error')
 // const formatNumber = require('../utils/formatNumber')
 function formatNumber(phone) {
 	phone = phone.replace(/\D/g, '')
-	if (phone[0] === '8') phone = phone.replace('8', '')
-	return phone
+	// console.log('1 - strip', phone)
+
+	if (phone[0] === '8') {
+		// console.log('2 - 8', phone)
+		phone = phone.replace('8', '')
+	}
+
+	if (phone.length === 10) {
+		phone = '7' + phone
+		// console.log('3 - length', phone)
+	}
+
+	return '+' + phone
 }
 
 const request = require('request-promise')
@@ -18,7 +29,9 @@ async function createPassword({ phone }) {
 	const ephone = phone
 	phone = formatNumber(phone)
 
-	const user = await User.findOne({ $or: [{ phones: phone }, { phones: `+${phone}` }, { phones: `+7${phone}` }, { phones: `8${phone}` }] })
+	const user = await User.findOne({ phones: phone })
+	// throw new CustomError(`Test ${phone} error throw`, 400)
+
 	if (!user || user === null) throw new CustomError(`Номер ${ephone} у нас не зарегистрирован`, 400)
 
 	let userPhone = '';
@@ -36,7 +49,7 @@ async function createPassword({ phone }) {
 		uri: 'http://smsc.ru/sys/send.php',
 		qs: {
 			login: 'catindev', psw: '578e493c84f81d6f07046a4bb73bdaa0',
-			phones: userPhone, mes: `Пароль для входа в Майндсейлс — ${code}`,
+			phones: phone, mes: `Пароль для входа в Майндсейлс — ${code}`,
 			period: '0.1', charset: 'utf-8'
 		}
 	})
