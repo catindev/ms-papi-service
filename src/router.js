@@ -29,7 +29,7 @@ const {
     rejectCustomersForStats, dealCustomersForStats, badLeadsProfilesForStats,
     qeuedLeadsForStats,
     usersStats, customersByUsers,
-    getCallsStatsFromATS
+    getCallsStatsFromATS, incomingTimeStatsFromATS, missingTimeStatsFromATS
 } = require('./queries/stats')
 const { allAccounts } = require('./queries/accounts')
 const { userById, getUsers } = require('./queries/users')
@@ -429,6 +429,22 @@ router.get('/stats/calls', (request, response, next) => {
     const { userID, query: { start, end, type } } = request
 
     getCallsStatsFromATS({ userID, start, end, type })
+        .then(items => response.json({ status: 200, items }))
+        .catch(next)
+})
+
+router.get('/stats/incoming/time', (request, response, next) => {
+    const { userID, query: { start, end } } = request
+
+    incomingTimeStatsFromATS({ userID, start, end })
+        .then(items => response.json({ status: 200, items }))
+        .catch(next)
+})
+
+router.get('/stats/missing/time', (request, response, next) => {
+    const { userID, query: { start, end } } = request
+
+    missingTimeStatsFromATS({ userID, start, end })
         .then(items => response.json({ status: 200, items }))
         .catch(next)
 })

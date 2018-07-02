@@ -31,6 +31,34 @@ async function getCallsStatsFromATS({ userID, start, end, type }) {
     return response
 }
 
+async function incomingTimeStatsFromATS({ userID, start, end }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    const { account: { _id } } = await userById({ userID })
+
+    const qs = `?account_id=${_id}&interval_start=${start}&interval_end=${end}`
+
+    const response = await request({
+        uri: `https://pbxrec.mindsales.kz/mstelbot/graf_time_incoming.php${qs}`,
+        json: true
+    })
+
+    return response
+}
+
+async function missingTimeStatsFromATS({ userID, start, end }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    const { account: { _id } } = await userById({ userID })
+
+    const qs = `?account_id=${_id}&interval_start=${start}&interval_end=${end}`
+
+    const response = await request({
+        uri: `https://pbxrec.mindsales.kz/mstelbot/graf_time_missing.php${qs}`,
+        json: true
+    })
+
+    return response
+}
+
 async function fuckedLeads({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     const { account: { _id } } = await userById({ userID })
@@ -406,6 +434,8 @@ async function rejectCustomersForStats({ userID, start, end, trunk = false, mana
     if (typeof trunk === 'string') trunk = toObjectId(trunk)
     if (typeof manager === 'string') manager = toObjectId(manager)
 
+    console.log(start, end, trunk, manager, by_created)
+
     const { account: { _id } } = await userById({ userID })
     const query = {
         account: _id, funnelStep: 'reject',
@@ -426,6 +456,8 @@ async function rejectCustomersForStats({ userID, start, end, trunk = false, mana
 
     if (trunk) query.trunk = trunk
     if (manager) query.user = manager
+
+    console.log(query)
 
     const customers = await Customer.find(query)
         .sort(by_created ? '-created' : '-reject.date').populate('user').lean().exec()
@@ -463,6 +495,8 @@ async function badLeadsProfilesForStats({ userID, start, end, trunk = false, man
 
     if (trunk) query.trunk = trunk
     if (manager) query.user = manager
+
+    console.log(query)
 
     const customers = await Customer.find(query)
         .sort(by_created ? '-created' : '-reject.date').populate('user').lean().exec()
@@ -605,5 +639,7 @@ module.exports = {
     usersStats, customersByUsers,
 
     // ATS API
-    getCallsStatsFromATS
+    getCallsStatsFromATS,
+    incomingTimeStatsFromATS,
+    missingTimeStatsFromATS
 }
