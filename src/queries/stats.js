@@ -59,6 +59,20 @@ async function missingTimeStatsFromATS({ userID, start, end }) {
     return response
 }
 
+async function reactionStatsFromATS({ userID, start, end, type }) {
+    if (typeof userID === 'string') userID = toObjectId(userID)
+    const { account: { _id, maxWaitingTime } } = await userById({ userID })
+
+    const qs = `?interval_type=${type}&account_id=${_id}&interval_start=${start}&interval_end=${end}&waiting_time=${maxWaitingTime / 1000}`
+
+    const response = await request({
+        uri: `https://pbxrec.mindsales.kz/mstelbot/graf_speed.php${qs}`,
+        json: true
+    })
+
+    return response
+}
+
 async function fuckedLeads({ userID }) {
     if (typeof userID === 'string') userID = toObjectId(userID)
     const { account: { _id } } = await userById({ userID })
@@ -641,5 +655,6 @@ module.exports = {
     // ATS API
     getCallsStatsFromATS,
     incomingTimeStatsFromATS,
-    missingTimeStatsFromATS
+    missingTimeStatsFromATS,
+    reactionStatsFromATS
 }
